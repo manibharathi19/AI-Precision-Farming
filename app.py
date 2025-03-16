@@ -5,13 +5,19 @@ import uuid
 from datetime import datetime
 import numpy as np
 from werkzeug.utils import secure_filename
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 conn = sqlite3.connect('farm_advisor.db')
 cursor = conn.cursor()
 cursor.execute("PRAGMA journal_mode=WAL;")  # Enables Write-Ahead Logging
 conn.commit()
 conn.close()
+
+def get_db_connection():
+    conn = sqlite3.connect('farm_advisor.db', timeout=10)  # Increase timeout
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL;")  # Enable WAL mode here
+    return conn
 
 app = Flask(__name__)
 app.secret_key = "farmadvisorapp2025"
@@ -68,6 +74,9 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Add favicon to static folder to avoid 404 errors
+if not os.path.exists('static'):
+    os.makedirs('static')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -94,10 +103,13 @@ def register():
         farmer_id = request.form.get('farmer_id', None)
         location = request.form['location']
 
+        # Hash password for security
+        hashed_password = generate_password_hash(password)
+
         conn = get_db_connection()
         try:
             conn.execute('INSERT INTO users (username, password, email, farmer_id, location) VALUES (?, ?, ?, ?, ?)',
-                         (username, password, email, farmer_id, location))
+                         (username, hashed_password, email, farmer_id, location))
             conn.commit()
             conn.close()
             flash('Registration successful. Please log in.', 'success')
@@ -116,10 +128,10 @@ def login():
         password = request.form['password']
 
         conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
         conn.close()
 
-        if user:
+        if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['username'] = user['username']  # Store username in session
             return redirect(url_for('dashboard'))
@@ -137,8 +149,6 @@ def logout():
 
 @app.route('/dashboard')
 def dashboard():
-    print("Session Data:", session)  # Debugging output
-
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
@@ -502,21 +512,23 @@ def update_profile():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        name = request.form.get('name')  # Use .get() to avoid KeyError
+        # Updated to use correct field names from your form
+        username = request.form.get('username')
         email = request.form.get('email')
+        location = request.form.get('location', 'Unknown')
 
-        if not name or not email:
-            flash('Name and Email cannot be empty!', 'warning')
+        if not username or not email:
+            flash('Username and Email cannot be empty!', 'warning')
             return redirect(url_for('profile'))
 
         conn = sqlite3.connect('farm_advisor.db')
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET name = ?, email = ? WHERE id = ?", 
-                      (name, email, session['user_id']))
+        cursor.execute("UPDATE users SET username = ?, email = ?, location = ? WHERE id = ?", 
+                      (username, email, location, session['user_id']))
         conn.commit()
         conn.close()
         
-        session['name'] = name
+        session['username'] = username
         flash('Profile updated successfully!', 'success')
     
     return redirect(url_for('profile'))
@@ -550,11 +562,13 @@ def weather_data():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    # Simplified error handler that doesn't require a template
+    return "Page not found (404)", 404
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('500.html'), 500
+    # Simplified error handler that doesn't require a template
+    return "Internal server error (500)", 500
 
 @app.route('/final_report/')
 def final_report():
@@ -578,6 +592,10 @@ def final_report():
 
     return render_template('final_report.html', reports=reports)  # Pass reports (list), not report (single)
 
+# Create a simple favicon route to avoid 404 errors
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204  # Return empty response with 204 status code (No Content)
 
 if __name__ == '__main__':
     app.run(debug=True)
