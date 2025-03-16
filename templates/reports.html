@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Reports - Farm Advisor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .reports-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .reports-header {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .report-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        .report-card:hover {
+            transform: translateY(-5px);
+        }
+        .report-card-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .report-card-body {
+            padding: 15px;
+        }
+        .report-card-footer {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        .crop-badge {
+            background-color: #e9f7ef;
+            color: #28a745;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .date-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .no-reports {
+            text-align: center;
+            padding: 50px 0;
+            color: #6c757d;
+        }
+        .filters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">Farm Advisor</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('input_form') }}">New Analysis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('reports') }}">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('weather_data') }}">Weather</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container reports-container">
+        <div class="reports-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2><i class="bi bi-file-earmark-text"></i> Your Farm Reports</h2>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{{ url_for('input_form') }}" class="btn btn-light">
+                        <i class="bi bi-plus-circle"></i> New Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search reports...">
+                        <button class="btn btn-outline-secondary" type="button">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select">
+                        <option selected>Sort by date</option>
+                        <option>Sort by crop type</option>
+                        <option>Sort by soil health</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {% if reports|length > 0 %}
+        <div class="row">
+            {% for report in reports %}
+            <div class="col-md-6 col-lg-4">
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <span class="crop-badge">{{ report.crop_recommendation }}</span>
+                        <span class="float-end date-text">{{ report.created_at.split(' ')[0] }}</span>
+                    </div>
+                    <div class="report-card-body">
+                        <h5>Report #{{ loop.index }}</h5>
+                        <p class="mb-2"><small>ID: {{ report.report_id[:8] }}...</small></p>
+                        <p class="mb-0">This report contains soil analysis and crop recommendations for your farm.</p>
+                    </div>
+                    <div class="report-card-footer d-flex justify-content-between">
+                        <a href="{{ url_for('view_report', report_id=report.report_id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <a href="{{ url_for('download_report', report_id=report.report_id) }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-reports">
+            <i class="bi bi-file-earmark-x" style="font-size: 48px;"></i>
+            <h3>No Reports Found</h3>
+            <p>You haven't created any reports yet. Start by creating a new soil analysis.</p>
+            <a href="{{ url_for('input_form') }}" class="btn btn-success mt-3">
+                <i class="bi bi-plus-circle"></i> New Analysis
+            </a>
+        </div>
+        {% endif %}
+        
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+        </div>
+        
+        <footer class="mt-5 py-3 bg-dark text-white text-center">
+            <div class="container">
+                <p class="mb-0">&copy; 2023 Farm Advisor. All rights reserved.</p>
+            </div>
+        </footer>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // You can add custom JavaScript here
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Page loaded successfully');
+            });
+        </script>
+        </body>
+        </html>

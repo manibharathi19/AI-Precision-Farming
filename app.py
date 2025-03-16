@@ -502,9 +502,13 @@ def update_profile():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        
+        name = request.form.get('name')  # Use .get() to avoid KeyError
+        email = request.form.get('email')
+
+        if not name or not email:
+            flash('Name and Email cannot be empty!', 'warning')
+            return redirect(url_for('profile'))
+
         conn = sqlite3.connect('farm_advisor.db')
         cursor = conn.cursor()
         cursor.execute("UPDATE users SET name = ?, email = ? WHERE id = ?", 
@@ -514,16 +518,17 @@ def update_profile():
         
         session['name'] = name
         flash('Profile updated successfully!', 'success')
-        
+    
     return redirect(url_for('profile'))
 
+
+  
+# This would typically fetch real weather data from an API demonstration, we'll use static data
 @app.route('/weather_data')
 def weather_data():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    # This would typically fetch real weather data from an API
-    # For demonstration, we'll use static data
     weather_info = {
         'current': {
             'temperature': 28,
@@ -540,8 +545,8 @@ def weather_data():
             {'day': 'Day 5', 'temperature': 28, 'condition': 'Partly Cloudy'}
         ]
     }
-    
-    return render_template('weather.html', weather=weather_info)
+
+    return render_template('weather.html', weather=weather_info, now=datetime.now)
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -551,8 +556,8 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
-@app.route('/final_report')
-def final_report(report_id):
+@app.route('/final_report/')
+def final_report():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
@@ -560,18 +565,19 @@ def final_report(report_id):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("""
-    SELECT * FROM reports 
-    WHERE user_id = ? AND report_id = ?
-    """, (session['user_id'], report_id))
+    SELECT * FROM reports             
+    WHERE user_id = ?
+    """, (session['user_id'],))
     
-    report = cursor.fetchone()
+    reports = cursor.fetchall()  # Fetch all reports
     conn.close()
     
-    if not report:
-        flash('Report not found!', 'danger')
-        return redirect(url_for('reports'))
-    
-    return render_template('final_report.html', report=report)
+    if not reports:
+        flash('No reports found!', 'warning')
+        return redirect(url_for('dashboard'))  # Redirect to a different page if no reports exist
+
+    return render_template('final_report.html', reports=reports)  # Pass reports (list), not report (single)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
