@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaf Color Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #28a745;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #28a745;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            padding: 10px 25px;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            display: none;
+            border-radius: 5px;
+        }
+        #file-upload {
+            display: none;
+        }
+        .btn-group {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Leaf Color Analysis</h1>
+        
+        <form action="/process_leaf" method="post" enctype="multipart/form-data">
+            <div class="upload-area" id="drop-area" onclick="document.getElementById('file-upload').click();">
+                <div class="upload-icon">📷</div>
+                <p>Click or drag and drop a leaf image here</p>
+                <p class="text-muted">Supported formats: JPG, PNG</p>
+                <input type="file" id="file-upload" name="leaf_image" accept="image/jpeg, image/png" onchange="previewImage(this)">
+                <img id="preview-image" src="#" alt="Image preview">
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-success" id="analyze-btn" disabled>Analyze Leaf Color</button>
+            </div>
+        </form>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <p class="text-muted">The leaf color analysis helps determine potential nutrient deficiencies in your crop.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(input) {
+            const previewImg = document.getElementById('preview-image');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    analyzeBtn.disabled = false;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Drag and drop functionality
+        const dropArea = document.getElementById('drop-area');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('bg-light');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('bg-light');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            document.getElementById('file-upload').files = files;
+            previewImage(document.getElementById('file-upload'));
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
