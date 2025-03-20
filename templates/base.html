@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="{{ g.locale }}">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="AI Precision Farming" />
+    <meta name="author" content="Mani Bharathi" />
+    <title>{% block title %}AI Precision Farming{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="sb-nav-fixed">
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <!-- Navbar Brand-->
+        <a class="navbar-brand ps-3" href="{{ url_for('dashboard') }}">AI Precision Farming</a>
+        <!-- Sidebar Toggle-->
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+        <!-- Language Selector -->
+        <div class="ms-auto me-3">
+            <form action="{{ url_for('set_language') }}" method="post" id="language-form">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <select name="language" id="language-select" class="form-select form-select-sm bg-dark text-light" onchange="this.form.submit()">
+                    {% for code, name in config['LANGUAGES'].items() %}
+                        <option value="{{ code }}" {% if g.locale == code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <!-- Navbar-->
+        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="{{ url_for('profile') }}">{{ _('Profile') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('settings') }}">{{ _('Settings') }}</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">{{ _('Logout') }}</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <div class="sb-sidenav-menu-heading">{{ _('Core') }}</div>
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            {{ _('Dashboard') }}
+                        </a>
+                        <div class="sb-sidenav-menu-heading">{{ _('Farm Management') }}</div>
+                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
+                            <div class="sb-nav-link-icon"><i class="fas fa-seedling"></i></div>
+                            {{ _('Crops') }}
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="{{ url_for('crop_list') }}">{{ _('View All') }}</a>
+                                <a class="nav-link" href="{{ url_for('crop_add') }}">{{ _('Add New') }}</a>
+                            </nav>
+                        </div>
+                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePages" aria-expanded="false" aria-controls="collapsePages">
+                            <div class="sb-nav-link-icon"><i class="fas fa-map-marked-alt"></i></div>
+                            {{ _('Fields') }}
+                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        </a>
+                        <div class="collapse" id="collapsePages" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
+                            <nav class="sb-sidenav-menu-nested nav">
+                                <a class="nav-link" href="{{ url_for('field_list') }}">{{ _('View All') }}</a>
+                                <a class="nav-link" href="{{ url_for('field_add') }}">{{ _('Add New') }}</a>
+                            </nav>
+                        </div>
+                        <div class="sb-sidenav-menu-heading">{{ _('Analysis') }}</div>
+                        <a class="nav-link" href="{{ url_for('soil_analysis') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-microscope"></i></div>
+                            {{ _('Soil Analysis') }}
+                        </a>
+                        <a class="nav-link" href="{{ url_for('disease_detection') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-bug"></i></div>
+                            {{ _('Disease Detection') }}
+                        </a>
+                        <div class="sb-sidenav-menu-heading">{{ _('Reports') }}</div>
+                        <a class="nav-link" href="{{ url_for('reports') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
+                            {{ _('Analytics') }}
+                        </a>
+                    </div>
+                </div>
+                <div class="sb-sidenav-footer">
+                    <div class="small">{{ _('Logged in as:') }}</div>
+                    {{ current_user.username }}
+                </div>
+            </nav>
+        </div>
+        <div id="layoutSidenav_content">
+            <main>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </main>
+            <footer class="py-4 bg-light mt-auto">
+                <div class="container-fluid px-4">
+                    <div class="d-flex align-items-center justify-content-between small">
+                        <div class="text-muted">{{ _('Copyright') }} &copy; AI Precision Farming 2025</div>
+                        <div>
+                            <a href="#">{{ _('Privacy Policy') }}</a>
+                            &middot;
+                            <a href="#">{{ _('Terms & Conditions') }}</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

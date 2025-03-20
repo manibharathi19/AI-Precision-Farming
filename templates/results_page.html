@@ -17,73 +17,75 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
         }
-        h1 {
+        h1, h2 {
             color: #28a745;
             margin-bottom: 30px;
             text-align: center;
         }
-        .card {
-            margin-bottom: 20px;
-            border: none;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        .data-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
         }
-        .card-header {
+        .recommendation-card {
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #28a745;
+        }
+        .data-title {
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+        .btn-outline-success {
+            border-color: #28a745;
+            color: #28a745;
+        }
+        .btn-outline-success:hover {
             background-color: #28a745;
             color: white;
-            font-weight: bold;
-        }
-        .top-crop {
-            background-color: #198754;
-        }
-        .btn-next {
-            background-color: #28a745;
-            border: none;
-            padding: 10px 25px;
-        }
-        .crop-details {
-            margin-top: 10px;
-            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Crop Recommendation Results</h1>
+        <h1>Crop Recommendation</h1>
         
-        <div class="card mb-4">
-            <div class="card-header top-crop">
-                Top Recommended Crop
-            </div>
-            <div class="card-body">
-                <h3 class="card-title">{{ top_crop }}</h3>
-                <div class="crop-details">
-                    <p><strong>Confidence Score:</strong> {{ top_crop_confidence }}%</p>
-                    <p>{{ top_crop_description }}</p>
+        <div class="data-card">
+            <div class="data-title">Location Information</div>
+            <p><strong>Location:</strong> {{ soil_data.Location }}</p>
+        </div>
+        
+        <div class="data-card">
+            <div class="data-title">Soil Parameters</div>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nitrogen:</strong> {{ soil_data.Nitrogen }} mg/kg</p>
+                    <p><strong>Phosphorus:</strong> {{ soil_data.Phosphorus }} mg/kg</p>
+                    <p><strong>Potassium:</strong> {{ soil_data.Potassium }} mg/kg</p>
+                    <p><strong>pH:</strong> {{ soil_data.pH }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Rainfall:</strong> {{ soil_data.Rainfall }} mm</p>
+                    <p><strong>Temperature:</strong> {{ soil_data.Temperature }} °C</p>
+                    <p><strong>Humidity:</strong> {{ soil_data.Humidity }}%</p>
                 </div>
             </div>
         </div>
-
-        <div class="row">
-            {% for crop in alternative_crops %}
-            <div class="col-md-6">
-                <div class="card mb-3">
-                    <div class="card-header">
-                        Alternative Option {{ loop.index }}
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">{{ crop.name }}</h5>
-                        <p><strong>Confidence Score:</strong> {{ crop.confidence }}%</p>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
+        
+        <div class="recommendation-card">
+            <div class="data-title">AI Crop Recommendation</div>
+            <div>{{ crop_recommendation|safe|replace('\n', '<br>') }}</div>
         </div>
-
-        <div class="row mt-4">
-            <div class="col-12 text-center">
-                <a href="/leaf_analysis" class="btn btn-next">Analyze Leaf Color</a>
-            </div>
+        
+        <div class="d-grid gap-2 col-6 mx-auto">
+            <a href="/" class="btn btn-outline-success">Back to Home</a>
+            <a href="/download_report/{{ session.report_id }}" class="btn btn-success">Download Report</a>
         </div>
     </div>
 

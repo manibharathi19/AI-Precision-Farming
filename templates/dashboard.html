@@ -106,49 +106,17 @@
             color: var(--text-primary);
         }
 
-        .hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-                        url('/api/placeholder/1200/400') center/cover no-repeat;
-            color: white;
-            text-align: center;
-            padding: 4rem 1rem;
+        .welcome-section {
             margin: 2rem 0;
+            padding: 2rem;
+            background-color: var(--card-bg);
             border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
         }
 
-        .hero h2 {
-            font-size: 2.5rem;
+        .welcome-section h2 {
+            color: var(--primary-dark);
             margin-bottom: 1rem;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            max-width: 800px;
-            margin: 0 auto 2rem;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: var(--primary);
-            color: var(--text-on-primary);
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--border-radius);
-            text-decoration: none;
-            font-weight: 500;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn-accent {
-            background-color: var(--accent);
-            color: var(--text-primary);
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
         .features {
@@ -157,6 +125,13 @@
             gap: 2rem;
             margin: 3rem auto;
         }
+        .f1 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+}
+
 
         .feature-card {
             background-color: var(--card-bg);
@@ -185,6 +160,31 @@
             color: var(--primary-dark);
         }
 
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: var(--text-on-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
         .footer {
             background-color: var(--primary);
             color: var(--text-on-primary);
@@ -192,6 +192,23 @@
             text-align: center;
             margin-top: 3rem;
         }
+
+        /* Language selector */
+        .language-selector {
+            position: relative;
+            margin-left: 1rem;
+        }
+
+        .language-selector select {
+            padding: 0.5rem;
+            background-color: var(--primary-light);
+            color: var(--text-on-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            outline: none;
+        }
+        
     </style>
 </head>
 <body>
@@ -202,22 +219,30 @@
                 <h1>AgroAssist</h1>
             </div>
             <div class="user-menu">
-                <div class="user-info">
+                <div class="language-selector">
+                    <select id="languageSelect" onchange="changeLanguage()">
+                        <option value="en">English</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                    </select>
+                </div>
+                <a href="/profile" class="user-info">
                     <div class="user-avatar">
                         {{ username[0].upper() }}
                     </div>
                     <span>{{ username }}</span>
-                </div>
+                </a>
                 <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </header>
+    
 
     <div class="container">
-        <section class="hero">
-            <h2>Welcome to AgroAssist</h2>
-            <p>Get personalized crop and fertilizer recommendations based on your soil analysis, land conditions, and leaf color assessment.</p>
-            <a href="/input_form" class="btn btn-accent">Start Analysis</a>
+        <section class="welcome-section">
+            <h2>Welcome, {{ username }}!</h2>
+            <p>Select one of the options below to get started with your farming analysis.</p>
         </section>
 
         <section class="features">
@@ -226,31 +251,75 @@
                     <i class="fas fa-seedling"></i>
                 </div>
                 <h3 class="feature-title">Crop Recommendations</h3>
-                <p>Receive personalized crop recommendations based on your soil parameters, land conditions, and local climate data.</p>
+                <p>Get crop suggestions based on soil parameters.</p>
+                <a href="/input_form" class="btn">Start Analysis</a>
             </div>
 
-            <div class="feature-card">
+            <!-- <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-flask"></i>
                 </div>
                 <h3 class="feature-title">Fertilizer Analysis</h3>
-                <p>Get precise fertilizer recommendations to maximize yield while minimizing cost and environmental impact.</p>
-            </div>
+                <p>Get precise fertilizer recommendations to maximize yield while minimizing cost.</p>
+                <a href="/leaf_analysis" class="btn">Check Fertilizers</a>
+            </div> -->
 
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-leaf"></i>
                 </div>
-                <h3 class="feature-title">Leaf Color Analysis</h3>
-                <p>Upload leaf images to determine nitrogen levels using advanced Leaf Color Chart technology.</p>
+                <h3 class="feature-title">Leaf & Fertilizer Analysis</h3>
+                <p>Analyze leaf health and get AI-powered fertilizer recommendations.</p>
+                <a href="/leaf_analysis" class="btn">Upload Image</a>
             </div>
+            
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+                <h3 class="feature-title">Weather Information</h3>
+                <p>Get real-time weather updates and forecasts for better farm planning.</p>
+                <a href="/weather_data" class="btn">Check Weather</a>
+            </div>
+            
+            <div class="f1"></div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <h3 class="feature-title">Final Report</h3>
+                <p>Access the final weather analysis and insights for efficient farm management.</p>
+                <a href="/final_report" class="btn">View Report</a>
+            </div>
+        </div>
+            
         </section>
     </div>
+    </body></div>
 
     <footer class="footer">
         <div class="container">
             <p>&copy; 2025 AgroAssist - Agricultural Recommendation System</p>
         </div>
     </footer>
+
+    <script>
+        function changeLanguage() {
+            const selectedLanguage = document.getElementById('languageSelect').value;
+            fetch(`/translate?lang=${selectedLanguage}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
