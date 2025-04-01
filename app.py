@@ -408,6 +408,7 @@ def process_location():
         
         # Get AI recommendation
         crop_recommendation = get_groq_prediction(combined_data)
+        # print(crop_recommendation)
         session['crop_recommendation'] = crop_recommendation
         
         # Save to database

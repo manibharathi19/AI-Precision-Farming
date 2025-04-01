@@ -7,134 +7,129 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f4f6f9;
             font-family: 'Arial', sans-serif;
         }
         .container {
-            max-width: 800px;
-            margin-top: 50px;
+            max-width: 900px;
+            margin: 50px auto;
             background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 50px;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         }
-        h1, h2 {
-            color: #28a745;
+        .result-header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
             margin-bottom: 30px;
             text-align: center;
         }
-        .data-card {
+        .result-section {
             background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-        .recommendation-card {
-            background-color: #e8f5e9;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            border-left: 5px solid #28a745;
-        }
-        .data-title {
-            font-weight: bold;
-            color: #28a745;
-            margin-bottom: 15px;
-        }
-        .btn-outline-success {
-            border-color: #28a745;
-            color: #28a745;
-        }
-        .btn-outline-success:hover {
-            background-color: #28a745;
-            color: white;
-        }
-        .parameter-card {
-            padding: 15px;
             border-radius: 8px;
-            margin-bottom: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .result-section-title {
+            color: #28a745;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .parameter-item {
             background-color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         .parameter-label {
-            font-weight: 500;
+            font-weight: 600;
             color: #555;
         }
         .parameter-value {
-            font-size: 1.2rem;
-            font-weight: 700;
+            font-size: 1.2em;
             color: #333;
+            font-weight: bold;
         }
-        .parameter-unit {
-            font-size: 0.8rem;
-            color: #777;
+        .ai-recommendation {
+            background-color: #e8f5e9;
+            border-left: 6px solid #28a745;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        .recommendation-title {
+            color: #28a745;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Crop Recommendation</h1>
-        
-        <div class="data-card">
-            <div class="data-title">Location Information</div>
-            <p><strong>Location:</strong> {{ soil_data.Location }}</p>
-            <p class="small text-muted">Results are based on soil and weather data for this location.</p>
+        <div class="result-header">
+            <h1>Crop Recommendation Report</h1>
         </div>
-        
-        <div class="data-card">
-            <div class="data-title">Soil and Weather Parameters</div>
+
+        <div class="result-section">
+            <h3 class="result-section-title">Location Details</h3>
+            <div class="parameter-item">
+                <div class="parameter-label">Location</div>
+                <div class="parameter-value">{{ soil_data.Location }}</div>
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h3 class="result-section-title">Soil Parameters</h3>
             <div class="row">
-                <!-- Soil Parameters -->
                 <div class="col-md-6">
-                    <h5 class="mb-3">Soil Data</h5>
-                    <div class="parameter-card">
-                        <div class="parameter-label">Nitrogen</div>
-                        <div class="parameter-value">{{ soil_data.Nitrogen }} <span class="parameter-unit">mg/kg</span></div>
+                    {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
+                    <div class="parameter-item">
+                        <div class="parameter-label">{{ param }}</div>
+                        <div class="parameter-value">
+                            {{ soil_data[param] }}
+                            {% if param != 'pH' %} <small class="text-muted">mg/kg</small>{% endif %}
+                        </div>
                     </div>
-                    <div class="parameter-card">
-                        <div class="parameter-label">Phosphorus</div>
-                        <div class="parameter-value">{{ soil_data.Phosphorus }} <span class="parameter-unit">mg/kg</span></div>
-                    </div>
-                    <div class="parameter-card">
-                        <div class="parameter-label">Potassium</div>
-                        <div class="parameter-value">{{ soil_data.Potassium }} <span class="parameter-unit">mg/kg</span></div>
-                    </div>
-                    <div class="parameter-card">
-                        <div class="parameter-label">pH</div>
-                        <div class="parameter-value">{{ soil_data.pH }}</div>
-                    </div>
-                </div>
-                
-                <!-- Weather Parameters -->
-                <div class="col-md-6">
-                    <h5 class="mb-3">Weather Data</h5>
-                    <div class="parameter-card">
-                        <div class="parameter-label">Rainfall</div>
-                        <div class="parameter-value">{{ soil_data.Rainfall }} <span class="parameter-unit">mm</span></div>
-                    </div>
-                    <div class="parameter-card">
-                        <div class="parameter-label">Temperature</div>
-                        <div class="parameter-value">{{ soil_data.Temperature }} <span class="parameter-unit">°C</span></div>
-                    </div>
-                    <div class="parameter-card">
-                        <div class="parameter-label">Humidity</div>
-                        <div class="parameter-value">{{ soil_data.Humidity }} <span class="parameter-unit">%</span></div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            <div class="mt-3">
-                <p class="small text-muted">These parameters were collected automatically based on your location. For more accurate results, consider getting a professional soil test.</p>
+        </div>
+
+        <div class="result-section">
+            <h3 class="result-section-title">Weather Parameters</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
+                    <div class="parameter-item">
+                        <div class="parameter-label">{{ param }}</div>
+                        <div class="parameter-value">
+                            {{ soil_data[param] }}
+                            {% if param == 'Rainfall' %}<small class="text-muted"> mm</small>
+                            {% elif param == 'Temperature' %}<small class="text-muted"> °C</small>
+                            {% elif param == 'Humidity' %}<small class="text-muted"> %</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        
-        <div class="recommendation-card">
-            <div class="data-title">AI Crop Recommendation</div>
-            <div class="crop-recommendation-content">
-                {{ crop_recommendation|safe|replace('\n', '<br>')|replace('1.', '<strong>1.</strong>')|replace('2.', '<strong>2.</strong>')|replace('3.', '<strong>3.</strong>')|replace('4.', '<strong>4.</strong>') }}
+
+        <div class="container">
+            <div class="ai-recommendation">
+                <h3 class="recommendation-title">Crop Recommendations</h3>
+                <ul class="recommendation-list">
+                    {% for recommendation in crop_recommendation.split('•') %}
+                        {% if recommendation.strip() %}
+                        <li>{{ recommendation.strip() }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
             </div>
         </div>
-        
+
         <div class="row mt-4">
             <div class="col-md-6 d-grid">
                 <a href="/" class="btn btn-outline-success">Back to Home</a>
