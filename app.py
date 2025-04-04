@@ -9,13 +9,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import requests
 from geopy.geocoders import Nominatim
-
+from werkzeug.utils import secure_filename
+from groq import Groq
+import base64
+import cv2
+import io
+from PIL import Image
 
 conn = sqlite3.connect('farm_advisor.db')
 cursor = conn.cursor()
 cursor.execute("PRAGMA journal_mode=WAL;")  # Enables Write-Ahead Logging
 conn.commit()
 conn.close()
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Configure Groq client
+groq_client = Groq(api_key="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")
+GROQ_MODEL = "llama3-70b-8192"  # or another appropriate model
 
 load_dotenv()
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -492,6 +507,9 @@ def location_form():
     
     return render_template('location-form.html')
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @app.route('/leaf_analysis')
 def leaf_analysis():
     if 'user_id' not in session:
@@ -520,26 +538,17 @@ def process_leaf():
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(file_path)
             
-            # Simplified leaf analysis logic
-            # This should be replaced with actual image processing/ML model
+            # Process the image with Groq API
+            analysis_result = analyze_leaf_with_groq(file_path)
             
-            # For demonstration, we'll just randomly assign a leaf color and health status
-            leaf_colors = ['#8CCB5E', '#FFCC00', '#A67C52', '#654321']
-            color_names = ['Healthy Green', 'Yellowing', 'Brown Spots', 'Wilting Brown']
-            health_statuses = ['Healthy', 'Nitrogen Deficiency', 'Potassium Deficiency', 'Disease Present']
-            deficiency_details = [
-                'No significant deficiencies detected',
-                'Nitrogen deficiency detected - leaves are yellowing uniformly',
-                'Potassium deficiency detected - leaf edges are browning',
-                'Fungal infection detected - brown spots throughout leaf'
-            ]
+            # Extract results from the Groq analysis
+            leaf_color = analysis_result['leaf_color']
+            leaf_color_name = analysis_result['leaf_color_name']
+            health_status = analysis_result['health_status']
+            deficiencies = analysis_result['deficiencies']
             
-            # Random selection for demo
-            index = np.random.randint(0, 4)
-            leaf_color = leaf_colors[index]
-            leaf_color_name = color_names[index]
-            health_status = health_statuses[index]
-            deficiencies = deficiency_details[index]
+            # Get fertilizer recommendations based on analysis
+            fertilizer_recommendation = get_fertilizer_recommendation(health_status)
             
             # Store leaf analysis in session
             session['leaf_analysis'] = {
@@ -549,71 +558,8 @@ def process_leaf():
                 'deficiencies': deficiencies
             }
             
-            # Fertilizer recommendation based on leaf analysis
-            if index == 0:  # Healthy
-                primary_fertilizer_name = "Balanced NPK Fertilizer"
-                primary_fertilizer_npk = "20-20-20"
-                primary_fertilizer_rate = "5 kg per acre"
-                primary_fertilizer_description = "A balanced fertilizer to maintain overall plant health and growth."
-                
-                alt_fertilizer_name = "Slow-Release Fertilizer"
-                alt_fertilizer_npk = "15-15-15"
-                alt_fertilizer_description = "Provides nutrients over a longer period with less frequent application."
-                
-                organic_fertilizer_name = "Compost"
-                organic_fertilizer_description = "Rich in organic matter to improve soil structure and fertility."
-                
-            elif index == 1:  # Nitrogen Deficiency
-                primary_fertilizer_name = "High Nitrogen Fertilizer"
-                primary_fertilizer_npk = "46-0-0"
-                primary_fertilizer_rate = "7 kg per acre"
-                primary_fertilizer_description = "Urea fertilizer to quickly address nitrogen deficiency."
-                
-                alt_fertilizer_name = "Ammonium Sulfate"
-                alt_fertilizer_npk = "21-0-0"
-                alt_fertilizer_description = "Provides nitrogen and sulfur, good for acidic soils."
-                
-                organic_fertilizer_name = "Blood Meal"
-                organic_fertilizer_description = "Organic nitrogen source that releases slowly into the soil."
-                
-            elif index == 2:  # Potassium Deficiency
-                primary_fertilizer_name = "Potash Fertilizer"
-                primary_fertilizer_npk = "0-0-60"
-                primary_fertilizer_rate = "6 kg per acre"
-                primary_fertilizer_description = "High potassium fertilizer to address deficiency and improve crop quality."
-                
-                alt_fertilizer_name = "NPK with high K"
-                alt_fertilizer_npk = "10-10-40"
-                alt_fertilizer_description = "Balanced fertilizer with emphasis on potassium."
-                
-                organic_fertilizer_name = "Wood Ash"
-                organic_fertilizer_description = "Natural source of potassium and other micronutrients."
-                
-            else:  # Disease
-                primary_fertilizer_name = "Fungicide + Fertilizer Mix"
-                primary_fertilizer_npk = "10-10-10 + Copper"
-                primary_fertilizer_rate = "4 kg per acre"
-                primary_fertilizer_description = "Combined treatment for disease control and plant nutrition."
-                
-                alt_fertilizer_name = "Fungicide Spray"
-                alt_fertilizer_npk = "N/A"
-                alt_fertilizer_description = "Targeted treatment for fungal diseases."
-                
-                organic_fertilizer_name = "Neem Cake"
-                organic_fertilizer_description = "Natural fungicide with mild fertilizer properties."
-            
             # Store fertilizer recommendation in session
-            session['fertilizer_recommendation'] = {
-                'primary_fertilizer_name': primary_fertilizer_name,
-                'primary_fertilizer_npk': primary_fertilizer_npk,
-                'primary_fertilizer_rate': primary_fertilizer_rate,
-                'primary_fertilizer_description': primary_fertilizer_description,
-                'alt_fertilizer_name': alt_fertilizer_name,
-                'alt_fertilizer_npk': alt_fertilizer_npk,
-                'alt_fertilizer_description': alt_fertilizer_description,
-                'organic_fertilizer_name': organic_fertilizer_name,
-                'organic_fertilizer_description': organic_fertilizer_description
-            }
+            session['fertilizer_recommendation'] = fertilizer_recommendation
             
             # Update database
             conn = sqlite3.connect('farm_advisor.db')
@@ -624,29 +570,155 @@ def process_leaf():
             WHERE report_id = ?
             ''', (
                 leaf_color_name + ": " + health_status,
-                primary_fertilizer_name,
-                session['report_id']
+                fertilizer_recommendation['primary_fertilizer_name'],
+                session.get('report_id', 0)
             ))
             conn.commit()
             conn.close()
             
             return render_template('fertilizer_recommendation.html',
-                                  leaf_color=leaf_color,
+                                  leaf_color="#00FF00",
                                   leaf_color_name=leaf_color_name,
                                   health_status=health_status,
                                   deficiencies=deficiencies,
-                                  primary_fertilizer_name=primary_fertilizer_name,
-                                  primary_fertilizer_npk=primary_fertilizer_npk,
-                                  primary_fertilizer_rate=primary_fertilizer_rate,
-                                  primary_fertilizer_description=primary_fertilizer_description,
-                                  alt_fertilizer_name=alt_fertilizer_name,
-                                  alt_fertilizer_npk=alt_fertilizer_npk,
-                                  alt_fertilizer_description=alt_fertilizer_description,
-                                  organic_fertilizer_name=organic_fertilizer_name,
-                                  organic_fertilizer_description=organic_fertilizer_description)
+                                  **fertilizer_recommendation)
     
     return redirect(url_for('leaf_analysis'))
 
+def analyze_leaf_with_groq(image_path):
+    """
+    Analyze leaf image using Groq API for leaf color and health assessment
+    """
+    # Read and encode the image
+    with open(image_path, "rb") as image_file:
+        image_data = base64.b64encode(image_file.read()).decode('utf-8')
+    
+    # Extract dominant color from image
+    img = cv2.imread(image_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    # Resize image for faster processing
+    resized_img = cv2.resize(img, (100, 100))
+    pixels = resized_img.reshape(-1, 3)
+    
+    # Calculate average color (simplified approach)
+    avg_color = np.mean(pixels, axis=0)
+    hex_color = '#{:02x}{:02x}{:02x}'.format(int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
+    
+    # Prompt for Groq API
+    prompt = f"""
+    Analyze this leaf image for agricultural purposes. The dominant color detected is {hex_color}.
+    
+    Please provide the following information:
+    1. A refined leaf color name (e.g., "Healthy Green", "Yellowing", "Brown Spots", "Wilting Brown")
+    2. The most likely plant health status based on the color (e.g., "Healthy", "Nitrogen Deficiency", "Potassium Deficiency", "Disease Present")
+    3. A detailed description of any detected deficiencies or diseases
+    
+    Format your response as a JSON object with the following keys:
+    - leaf_color (the hex code)
+    - leaf_color_name (descriptive name)
+    - health_status (diagnosis)
+    - deficiencies (explanation)
+    """
+    
+    # Call Groq API
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an agricultural expert specializing in leaf analysis."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"}
+        )
+        
+        # Parse the response
+        analysis_json = chat_completion.choices[0].message.content
+        import json
+        analysis_result = json.loads(analysis_json)
+        
+        # Ensure all required fields are present
+        if not all(k in analysis_result for k in ['leaf_color', 'leaf_color_name', 'health_status', 'deficiencies']):
+            raise ValueError("Incomplete response from API")
+            
+        return analysis_result
+        
+    except Exception as e:
+        print(f"Error calling Groq API: {e}")
+        # Fallback to default values in case of API failure
+        return {
+            'leaf_color': hex_color,
+            'leaf_color_name': 'Unknown',
+            'health_status': 'Analysis Failed',
+            'deficiencies': f'Unable to analyze leaf image. Error: {str(e)}'
+        }
+
+def get_fertilizer_recommendation(health_status):
+    """
+    Get fertilizer recommendations based on leaf health status
+    """
+    if health_status == "Healthy":
+        return {
+            'primary_fertilizer_name': "Balanced NPK Fertilizer",
+            'primary_fertilizer_npk': "20-20-20",
+            'primary_fertilizer_rate': "5 kg per acre",
+            'primary_fertilizer_description': "A balanced fertilizer to maintain overall plant health and growth.",
+            'alt_fertilizer_name': "Slow-Release Fertilizer",
+            'alt_fertilizer_npk': "15-15-15",
+            'alt_fertilizer_description': "Provides nutrients over a longer period with less frequent application.",
+            'organic_fertilizer_name': "Compost",
+            'organic_fertilizer_description': "Rich in organic matter to improve soil structure and fertility."
+        }
+    elif health_status == "Nitrogen Deficiency":
+        return {
+            'primary_fertilizer_name': "High Nitrogen Fertilizer",
+            'primary_fertilizer_npk': "46-0-0",
+            'primary_fertilizer_rate': "7 kg per acre",
+            'primary_fertilizer_description': "Urea fertilizer to quickly address nitrogen deficiency.",
+            'alt_fertilizer_name': "Ammonium Sulfate",
+            'alt_fertilizer_npk': "21-0-0",
+            'alt_fertilizer_description': "Provides nitrogen and sulfur, good for acidic soils.",
+            'organic_fertilizer_name': "Blood Meal",
+            'organic_fertilizer_description': "Organic nitrogen source that releases slowly into the soil."
+        }
+    elif health_status == "Potassium Deficiency":
+        return {
+            'primary_fertilizer_name': "Potash Fertilizer",
+            'primary_fertilizer_npk': "0-0-60",
+            'primary_fertilizer_rate': "6 kg per acre",
+            'primary_fertilizer_description': "High potassium fertilizer to address deficiency and improve crop quality.",
+            'alt_fertilizer_name': "NPK with high K",
+            'alt_fertilizer_npk': "10-10-40",
+            'alt_fertilizer_description': "Balanced fertilizer with emphasis on potassium.",
+            'organic_fertilizer_name': "Wood Ash",
+            'organic_fertilizer_description': "Natural source of potassium and other micronutrients."
+        }
+    elif "Disease" in health_status:
+        return {
+            'primary_fertilizer_name': "Fungicide + Fertilizer Mix",
+            'primary_fertilizer_npk': "10-10-10 + Copper",
+            'primary_fertilizer_rate': "4 kg per acre",
+            'primary_fertilizer_description': "Combined treatment for disease control and plant nutrition.",
+            'alt_fertilizer_name': "Fungicide Spray",
+            'alt_fertilizer_npk': "N/A",
+            'alt_fertilizer_description': "Targeted treatment for fungal diseases.",
+            'organic_fertilizer_name': "Neem Cake",
+            'organic_fertilizer_description': "Natural fungicide with mild fertilizer properties."
+        }
+    else:
+        # Default or unknown condition
+        return {
+            'primary_fertilizer_name': "Balanced NPK Fertilizer",
+            'primary_fertilizer_npk': "10-10-10",
+            'primary_fertilizer_rate': "5 kg per acre",
+            'primary_fertilizer_description': "General purpose fertilizer suitable for most crops.",
+            'alt_fertilizer_name': "Soil Test Recommended",
+            'alt_fertilizer_npk': "Varies",
+            'alt_fertilizer_description': "Consider a soil test for more accurate recommendations.",
+            'organic_fertilizer_name': "Compost",
+            'organic_fertilizer_description': "Improves soil health and provides balanced nutrition."
+        }
+    
 @app.route('/reports')
 def reports():
     if 'user_id' not in session:
@@ -820,4 +892,5 @@ def favicon():
     return '', 204  # Return empty response with 204 status code (No Content)
 
 if __name__ == '__main__':
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(debug=True)
