@@ -116,6 +116,35 @@
             padding: 15px;
             margin-bottom: 20px;
         }
+        #loading-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            width: 100%;
+        }
+        .alert-location {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .weather-icon-img {
+            width: 80px;
+            height: 80px;
+        }
+        .error-alert {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        #alertsDisplay {
+            margin: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -159,193 +188,174 @@
                     <h2><i class="bi bi-cloud-sun"></i> Weather Information</h2>
                 </div>
                 <div class="col-md-6 text-end">
-                    <span class="small">Last updated: {{ now().strftime('%Y-%m-%d %H:%M') }}</span>
+                    <span class="small" id="last-updated">Last updated: {{ now().strftime('%Y-%m-%d %H:%M') }}</span>
                 </div>
             </div>
+        </div>
+
+        <div id="geolocation-alert" class="alert-location" style="display: none;">
+            <i class="bi bi-geo-alt"></i> <span id="location-status-message">Detecting your location...</span>
+            <button id="allow-location" class="btn btn-sm btn-outline-info float-end" style="display: none;">
+                Allow Location Access
+            </button>
         </div>
 
         <div class="location-selector mb-4">
             <div class="row">
-                <div class="col-md-6">
-                    <label for="location" class="form-label">Select Location</label>
-                    <select class="form-select" id="location">
-                        <option selected>Your Farm (Default)</option>
-                        <option>Nearest City</option>
-                        <option>Custom Location</option>
+                <div class="col-md-4">
+                    <label for="location-type" class="form-label">Location Type</label>
+                    <select class="form-select" id="location-type">
+                        <option value="current">My Current Location</option>
+                        <option value="farm">My Farm (Default)</option>
+                        <option value="custom">Custom Location</option>
                     </select>
                 </div>
-                <div class="col-md-6">
-                    <label for="date-range" class="form-label">Date Range</label>
+                <div class="col-md-4">
+                    <label for="custom-location" class="form-label">Search Location</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="custom-location" placeholder="City name or coordinates" disabled>
+                        <button class="btn btn-outline-primary" type="button" id="search-location" disabled>
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="date-range" class="form-label">Forecast Range</label>
                     <select class="form-select" id="date-range">
-                        <option selected>7 Days Forecast</option>
-                        <option>14 Days Forecast</option>
-                        <option>30 Days Forecast (Premium)</option>
+                        <option value="7" selected>7 Days Forecast</option>
+                        <option value="5">5 Days Forecast</option>
+                        <option value="3">3 Days Forecast</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-7">
-                <h4 class="section-title">Current Weather</h4>
-                <div class="current-weather">
-                    <div class="row">
-                        <div class="col-md-6 text-center">
-                            {% if weather.current.condition == 'Sunny' %}
-                            <i class="bi bi-sun-fill weather-icon"></i>
-                            {% elif weather.current.condition == 'Partly Cloudy' %}
-                            <i class="bi bi-cloud-sun-fill weather-icon"></i>
-                            {% elif weather.current.condition == 'Cloudy' %}
-                            <i class="bi bi-cloud-fill weather-icon"></i>
-                            {% elif weather.current.condition == 'Rain' %}
-                            <i class="bi bi-cloud-rain-fill weather-icon"></i>
-                            {% else %}
-                            <i class="bi bi-cloud weather-icon"></i>
-                            {% endif %}
-                            <div class="temperature">{{ weather.current.temperature }}°C</div>
-                            <div class="weather-condition">{{ weather.current.condition }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="weather-details">
-                                <div class="weather-detail-item d-flex justify-content-between">
-                                    <span class="weather-detail-label"><i class="bi bi-droplet-fill"></i> Humidity:</span>
-                                    <span class="weather-detail-value">{{ weather.current.humidity }}%</span>
-                                </div>
-                                <div class="weather-detail-item d-flex justify-content-between">
-                                    <span class="weather-detail-label"><i class="bi bi-wind"></i> Wind Speed:</span>
-                                    <span class="weather-detail-value">{{ weather.current.wind_speed }} km/h</span>
-                                </div>
-                                <div class="weather-detail-item d-flex justify-content-between">
-                                    <span class="weather-detail-label"><i class="bi bi-water"></i> Precipitation:</span>
-                                    <span class="weather-detail-value">{{ weather.current.precipitation }} mm</span>
-                                </div>
-                                <div class="weather-detail-item d-flex justify-content-between">
-                                    <span class="weather-detail-label"><i class="bi bi-thermometer-half"></i> Feels Like:</span>
-                                    <span class="weather-detail-value">{{ weather.current.temperature - 2 }}°C</span>
+        <div id="loading-indicator">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        <div id="error-container" style="display: none;">
+            <!-- Error messages will be displayed here -->
+        </div>
+
+        <div id="weather-content" style="display: none;">
+            <div class="row">
+                <div class="col-md-7">
+                    <h4 class="section-title">Current Weather at <span id="location-name">Your Location</span></h4>
+                    <div class="current-weather">
+                        <div class="row">
+                            <div class="col-md-6 text-center">
+                                <img id="current-weather-icon" src="" alt="Weather Icon" class="weather-icon-img">
+                                <div class="temperature" id="current-temperature">--°C</div>
+                                <div class="weather-condition" id="current-condition">--</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="weather-details">
+                                    <div class="weather-detail-item d-flex justify-content-between">
+                                        <span class="weather-detail-label"><i class="bi bi-droplet-fill"></i> Humidity:</span>
+                                        <span class="weather-detail-value" id="current-humidity">--%</span>
+                                    </div>
+                                    <div class="weather-detail-item d-flex justify-content-between">
+                                        <span class="weather-detail-label"><i class="bi bi-wind"></i> Wind Speed:</span>
+                                        <span class="weather-detail-value" id="current-wind-speed">-- km/h</span>
+                                    </div>
+                                    <div class="weather-detail-item d-flex justify-content-between">
+                                        <span class="weather-detail-label"><i class="bi bi-water"></i> Precipitation:</span>
+                                        <span class="weather-detail-value" id="current-precipitation">-- mm</span>
+                                    </div>
+                                    <div class="weather-detail-item d-flex justify-content-between">
+                                        <span class="weather-detail-label"><i class="bi bi-thermometer-half"></i> Feels Like:</span>
+                                        <span class="weather-detail-value" id="current-feels-like">--°C</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-5">
-                <h4 class="section-title">Farm Advisory</h4>
-                <div class="advisory-card">
-                    <h5><i class="bi bi-exclamation-triangle-fill text-warning"></i> Weather Alert</h5>
-                    {% if weather.current.condition == 'Rain' %}
-                    <p>Heavy rainfall expected. Consider postponing pesticide application for at least 24 hours.</p>
-                    {% elif weather.current.condition == 'Sunny' and weather.current.temperature > 30 %}
-                    <p>High temperatures expected. Ensure adequate irrigation to prevent crop stress.</p>
-                    {% elif weather.current.humidity > 80 %}
-                    <p>High humidity levels may increase risk of fungal diseases. Monitor crops closely.</p>
-                    {% else %}
-                    <p>Good farming conditions today. Ideal for field operations and crop maintenance.</p>
-                    {% endif %}
-                </div>
-                <div class="advisory-card">
-                    <h5><i class="bi bi-calendar-check text-primary"></i> Recommended Activities</h5>
-                    <ul class="mb-0">
-                        {% if weather.current.condition == 'Sunny' %}
-                        <li>Ideal day for harvesting and drying crops</li>
-                        <li>Good conditions for soil preparation</li>
-                        {% elif weather.current.condition == 'Partly Cloudy' %}
-                        <li>Good day for planting and transplanting</li>
-                        <li>Consider applying fertilizers</li>
-                        {% elif weather.current.condition == 'Cloudy' %}
-                        <li>Good day for light field work</li>
-                        <li>Consider pest monitoring</li>
-                        {% else %}
-                        <li>Indoor activities recommended</li>
-                        <li>Check drainage systems</li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <h4 class="section-title">7-Day Forecast</h4>
-            </div>
-        </div>
-        <div class="row">
-            {% for day in weather.forecast %}
-            <div class="col-md-15 col-lg-2 col-sm-4">
-                <div class="forecast-card">
-                    <div class="forecast-day">{{ day.day }}</div>
-                    <div class="forecast-body">
-                        {% if day.condition == 'Sunny' %}
-                        <i class="bi bi-sun-fill weather-icon" style="font-size: 2rem;"></i>
-                        {% elif day.condition == 'Partly Cloudy' %}
-                        <i class="bi bi-cloud-sun-fill weather-icon" style="font-size: 2rem;"></i>
-                        {% elif day.condition == 'Cloudy' %}
-                        <i class="bi bi-cloud-fill weather-icon" style="font-size: 2rem;"></i>
-                        {% elif day.condition == 'Rain' %}
-                        <i class="bi bi-cloud-rain-fill weather-icon" style="font-size: 2rem;"></i>
-                        {% else %}
-                        <i class="bi bi-cloud weather-icon" style="font-size: 2rem;"></i>
-                        {% endif %}
-                        <div class="forecast-temp">{{ day.temperature }}°C</div>
-                        <div>{{ day.condition }}</div>
+                <div class="col-md-5">
+                    <h4 class="section-title">Farm Advisory</h4>
+                    <div id="alerts-container">
+                        <!-- Weather alerts will be dynamically inserted here -->
+                    </div>
+                    <div class="advisory-card">
+                        <h5><i class="bi bi-calendar-check text-primary"></i> Recommended Activities</h5>
+                        <ul class="mb-0" id="recommendations-list">
+                            <!-- Recommendations will be dynamically inserted here -->
+                        </ul>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
 
-        <div class="row mt-4">
-            <div class="col-md-12">
-                <h4 class="section-title">Temperature Trend</h4>
-                <div class="temperature-chart">
-                    <p class="text-muted">Temperature chart would be displayed here</p>
-                    <img src="{{ url_for('static', filename='img/placeholder-chart.png') }}" alt="Temperature Chart" class="img-fluid" onerror="this.style.display='none'">
-                    <canvas id="temperatureChart" width="400" height="200"></canvas>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h4 class="section-title" id="forecast-title">7-Day Forecast</h4>
                 </div>
             </div>
-        </div>
+            <div class="row" id="forecast-container">
+                <!-- Forecast cards will be dynamically inserted here -->
+            </div>
 
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <h4 class="section-title">Precipitation Forecast</h4>
-                <div class="advisory-card">
-                    <h5>Weekly Rainfall Prediction</h5>
-                    <p>Expected precipitation for the next 7 days: 25mm</p>
-                    <div class="progress mb-3">
-                        <div class="progress-bar bg-info" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25mm</div>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h4 class="section-title">Temperature Trend</h4>
+                    <div class="temperature-chart">
+                        <canvas id="temperatureChart" width="400" height="200"></canvas>
                     </div>
-                    <p class="small text-muted">Average for this time of year: 30mm</p>
                 </div>
             </div>
-            <div class="col-md-6">
-                <h4 class="section-title">Soil Moisture Prediction</h4>
-                <div class="advisory-card">
-                    <h5>Soil Moisture Outlook</h5>
-                    <p>Based on forecasted rainfall and temperature:</p>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Very Dry</span>
-                        <span>Optimal</span>
-                        <span>Very Wet</span>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h4 class="section-title">Precipitation Forecast</h4>
+                    <div class="advisory-card">
+                        <h5>Weekly Rainfall Prediction</h5>
+                        <p>Expected precipitation for the next 7 days: <span id="total-precipitation">-- mm</span></p>
+                        <div class="progress mb-3">
+                            <div class="progress-bar bg-info" id="precipitation-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 mm</div>
+                        </div>
+                        <p class="small text-muted">Average for this time of year: <span id="avg-precipitation">-- mm</span></p>
                     </div>
-                    <div class="progress mb-3" style="height: 25px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="col-md-6">
+                    <h4 class="section-title">Soil Moisture Prediction</h4>
+                    <div class="advisory-card">
+                        <h5>Soil Moisture Outlook</h5>
+                        <p>Based on forecasted rainfall and temperature:</p>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Very Dry</span>
+                            <span>Optimal</span>
+                            <span>Very Wet</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar" id="moisture-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="small text-muted" id="moisture-prediction">Prediction will appear here</p>
                     </div>
-                    <p class="small text-muted">Prediction: Adequate moisture levels for most crops</p>
                 </div>
             </div>
-        </div>
 
-        <div class="row mt-4">
-            <div class="col-md-12 text-center">
-                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
-                </a>
-                <button class="btn btn-success me-2">
-                    <i class="bi bi-download"></i> Download Weather Report
-                </button>
-                <!-- Continuing from where the code was cut off -->
-                <button class="btn btn-primary">
-                    <i class="bi bi-bell"></i> Set Weather Alerts
-                </button>
+            <div id="alertsDisplay" style="display: none;">
+                <h4 class="section-title">Your Active Alerts</h4>
+                <div id="alertsContent"></div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <button class="btn btn-success me-2" id="download-report">
+                        <i class="bi bi-download"></i> Download Weather Report
+                    </button>
+                    <button class="btn btn-primary" id="set-alerts">
+                        <i class="bi bi-bell"></i> Set Weather Alerts
+                    </button>
+                    <button class="btn btn-info" id="view-alerts">
+                        <i class="bi bi-eye"></i> View Saved Alerts
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -354,52 +364,847 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Temperature Chart Initialization
+        // Global variables
+        let map;
+        let weatherData;
+        let currentPosition = {
+            lat: 40.7128, // Default to New York City coordinates
+            lon: -74.0060
+        };
+        let temperatureChart;
+
         document.addEventListener('DOMContentLoaded', function() {
-            var ctx = document.getElementById('temperatureChart').getContext('2d');
-            var temperatureChart = new Chart(ctx, {
+            // Check if geolocation is available in the browser
+            if (navigator.geolocation) {
+                document.getElementById('geolocation-alert').style.display = 'block';
+                
+                // Try to get user location
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        // Success callback
+                        currentPosition.lat = position.coords.latitude;
+                        currentPosition.lon = position.coords.longitude;
+                        document.getElementById('location-status-message').innerHTML = 
+                            '<i class="bi bi-check-circle-fill text-success"></i> Using your current location';
+                        
+                        // Get weather data for detected location
+                        fetchWeatherData(currentPosition.lat, currentPosition.lon);
+                    },
+                    function(error) {
+                        // Error callback
+                        console.error("Geolocation error:", error);
+                        
+                        // Show error message and button to retry
+                        document.getElementById('location-status-message').innerHTML = 
+                            '<i class="bi bi-x-circle-fill text-danger"></i> Location access denied. Using default location.';
+                        document.getElementById('allow-location').style.display = 'block';
+                        
+                        // Get weather data for default location
+                        fetchWeatherData(currentPosition.lat, currentPosition.lon);
+                    }
+                );
+            } else {
+                // Browser doesn't support geolocation
+                document.getElementById('geolocation-alert').style.display = 'block';
+                document.getElementById('location-status-message').innerHTML = 
+                    '<i class="bi bi-x-circle-fill text-danger"></i> Geolocation is not supported by your browser. Using default location.';
+                
+                // Get weather data for default location
+                fetchWeatherData(currentPosition.lat, currentPosition.lon);
+            }
+            
+            // Initialize event listeners
+            document.getElementById('allow-location').addEventListener('click', requestGeolocation);
+            document.getElementById('location-type').addEventListener('change', handleLocationTypeChange);
+            document.getElementById('search-location').addEventListener('click', searchCustomLocation);
+            document.getElementById('date-range').addEventListener('change', handleDateRangeChange);
+            document.getElementById('download-report').addEventListener('click', downloadWeatherReport);
+            document.getElementById('set-alerts').addEventListener('click', setupWeatherAlerts);
+            document.getElementById('view-alerts').addEventListener('click', viewSavedAlerts);
+            
+            // Display any saved alerts on page load
+            displayAlertsOnPage();
+        });
+
+        function requestGeolocation() {
+            if (navigator.geolocation) {
+                document.getElementById('location-status-message').innerHTML = 'Detecting your location...';
+                document.getElementById('allow-location').style.display = 'none';
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        currentPosition.lat = position.coords.latitude;
+                        currentPosition.lon = position.coords.longitude;
+                        document.getElementById('location-status-message').innerHTML = 
+                            '<i class="bi bi-check-circle-fill text-success"></i> Using your current location';
+                        
+                        // Get weather data for detected location
+                        fetchWeatherData(currentPosition.lat, currentPosition.lon);
+                    },
+                    function(error) {
+                        console.error("Geolocation error:", error);
+                        document.getElementById('location-status-message').innerHTML = 
+                            '<i class="bi bi-x-circle-fill text-danger"></i> Location access denied. Using default location.';
+                        document.getElementById('allow-location').style.display = 'block';
+                    }
+                );
+            }
+        }
+
+        function handleLocationTypeChange() {
+            const locationType = document.getElementById('location-type').value;
+            const customLocationInput = document.getElementById('custom-location');
+            const searchButton = document.getElementById('search-location');
+            
+            if (locationType === 'custom') {
+                customLocationInput.disabled = false;
+                searchButton.disabled = false;
+            } else {
+                customLocationInput.disabled = true;
+                searchButton.disabled = true;
+                
+                if (locationType === 'current') {
+                    requestGeolocation();
+                } else if (locationType === 'farm') {
+                    // Use default farm location - this would come from user profile in a real app
+                    // For now, using a hardcoded agricultural region as an example
+                    fetchWeatherData(42.3601, -71.0589); // Boston coordinates as example farm location
+                }
+            }
+        }
+
+        function searchCustomLocation() {
+            const locationInput = document.getElementById('custom-location').value.trim();
+            
+            if (!locationInput) {
+                showError('Please enter a location name or coordinates');
+                return;
+            }
+            
+            // Check if input is coordinates (simple check for format: latitude,longitude)
+            if (/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(locationInput)) {
+                const [lat, lon] = locationInput.split(',').map(coord => parseFloat(coord.trim()));
+                if (isNaN(lat) || isNaN(lon)) {
+                    showError('Invalid coordinates format. Please use latitude,longitude format (e.g., 40.7128,-74.0060)');
+                    return;
+                }
+                fetchWeatherData(lat, lon);
+            } else {
+                // Assuming it's a city name, use the OpenWeatherMap geocoding API
+                fetch(`/api/geocode?q=${encodeURIComponent(locationInput)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Location search failed');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            const location = data[0];
+                            fetchWeatherData(location.lat, location.lon);
+                        } else {
+                            showError('Location not found. Please try a different name or coordinates.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching location:', error);
+                        showError('Error searching for location. Please try again.');
+                    });
+            }
+        }
+
+        function fetchWeatherData(lat, lon) {
+            document.getElementById('loading-indicator').style.display = 'flex';
+            document.getElementById('weather-content').style.display = 'none';
+            document.getElementById('error-container').style.display = 'none';
+            
+            fetch(`/api/weather?lat=${lat}&lon=${lon}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || 'Failed to fetch weather data');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    weatherData = data;
+                    updateWeatherUI(data);
+                    
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    document.getElementById('weather-content').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching weather data:', error);
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    
+                    let errorMessage = error.message;
+                    if (errorMessage.includes('OpenWeatherMap API key')) {
+                        errorMessage = 'Weather service is currently unavailable. Please try again later.';
+                    }
+                    
+                    const errorContainer = document.getElementById('error-container');
+                    errorContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i> 
+                            ${errorMessage}
+                        </div>
+                    `;
+                    errorContainer.style.display = 'block';
+                });
+        }
+
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `
+                <div class="alert alert-danger error-alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> ${message}
+                </div>
+            `;
+            errorContainer.style.display = 'block';
+        }
+
+        function updateWeatherUI(data) {
+            // Update location name
+            document.getElementById('location-name').textContent = data.current.location_name || 'Your Location';
+            
+            // Update current weather
+            document.getElementById('current-temperature').textContent = `${data.current.temperature}°C`;
+            document.getElementById('current-condition').textContent = data.current.condition;
+            document.getElementById('current-humidity').textContent = `${data.current.humidity}%`;
+            document.getElementById('current-wind-speed').textContent = `${(data.current.wind_speed * 3.6).toFixed(1)} km/h`; // Convert m/s to km/h
+            document.getElementById('current-precipitation').textContent = `${data.current.precipitation} mm`;
+            document.getElementById('current-feels-like').textContent = `${data.current.feels_like}°C`;
+            
+            // Update weather icon
+            const iconCode = data.current.icon;
+            document.getElementById('current-weather-icon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+            document.getElementById('current-weather-icon').alt = data.current.condition;
+            
+            // Update alerts
+            const alertsContainer = document.getElementById('alerts-container');
+            alertsContainer.innerHTML = '';
+            
+            if (data.advisories && data.advisories.alerts && data.advisories.alerts.length > 0) {
+                data.advisories.alerts.forEach(alert => {
+                    const alertCard = document.createElement('div');
+                    alertCard.className = 'advisory-card';
+                    alertCard.innerHTML = `
+                        <h5><i class="bi bi-exclamation-triangle-fill text-warning"></i> ${alert.title}</h5>
+                        <p>${alert.message}</p>
+                    `;
+                    alertsContainer.appendChild(alertCard);
+                });
+            } else {
+                const goodConditionsCard = document.createElement('div');
+                goodConditionsCard.className = 'advisory-card';
+                goodConditionsCard.innerHTML = `
+                    <h5><i class="bi bi-check-circle-fill text-success"></i> Good Farming Conditions</h5>
+                    <p>Weather conditions look favorable for farming activities today.</p>
+                `;
+                alertsContainer.appendChild(goodConditionsCard);
+            }
+            
+            // Update recommendations
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+            
+            if (data.advisories && data.advisories.recommendations) {
+                data.advisories.recommendations.forEach(recommendation => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = recommendation;
+                    recommendationsList.appendChild(listItem);
+                });
+            }
+            
+            // Update forecast cards
+            const forecastContainer = document.getElementById('forecast-container');
+            forecastContainer.innerHTML = '';
+            
+            if (data.forecast && data.forecast.length > 0) {
+                data.forecast.forEach(day => {
+                    const forecastCard = document.createElement('div');
+                    forecastCard.className = 'col-md-3 col-sm-6';
+                    forecastCard.innerHTML = `
+                        <div class="forecast-card">
+                            <div class="forecast-day">${day.day}</div>
+                            <div class="forecast-body">
+                                <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.condition}" class="img-fluid mb-2" style="height: 50px;">
+                                <div class="forecast-temp">${day.temperature}°C</div>
+                                <div class="small">${day.condition}</div>
+                                <div class="small text-muted">${day.precipitation} mm</div>
+                            </div>
+                        </div>
+                    `;
+                    forecastContainer.appendChild(forecastCard);
+                });
+            }
+            
+            // Update precipitation data
+            let totalPrecipitation = 0;
+            if (data.forecast) {
+                totalPrecipitation = data.forecast.reduce((sum, day) => sum + (day.precipitation || 0), 0);
+            }
+            document.getElementById('total-precipitation').textContent = `${totalPrecipitation.toFixed(1)} mm`;
+            
+            // Simple precipitation bar (scaled for visibility)
+            const precipitationBar = document.getElementById('precipitation-bar');
+            const precipitationPercentage = Math.min(100, totalPrecipitation * 2); // Scale for visibility
+            precipitationBar.style.width = `${precipitationPercentage}%`;
+            precipitationBar.textContent = `${totalPrecipitation.toFixed(1)} mm`;
+            precipitationBar.setAttribute('aria-valuenow', precipitationPercentage);
+            
+            // Update average precipitation (mock data - in real app this would come from historical data)
+            const avgPrecipitation = 15; // Example average
+            document.getElementById('avg-precipitation').textContent = `${avgPrecipitation} mm`;
+            
+            // Update soil moisture prediction
+            const moistureBar = document.getElementById('moisture-bar');
+            const moisturePrediction = document.getElementById('moisture-prediction');
+            
+            // Simple moisture calculation based on temperature and precipitation
+            let moistureLevel = 50; // Default
+            if (totalPrecipitation > 30) {
+                moistureLevel = 80;
+                moisturePrediction.textContent = 'Soil likely to become waterlogged. Improve drainage.';
+                moistureBar.className = 'progress-bar bg-danger';
+            } else if (totalPrecipitation > 15) {
+                moistureLevel = 65;
+                moisturePrediction.textContent = 'Good soil moisture expected. Monitor for optimal conditions.';
+                moistureBar.className = 'progress-bar bg-success';
+            } else if (totalPrecipitation < 5 && data.current.temperature > 25) {
+                moistureLevel = 20;
+                moisturePrediction.textContent = 'Dry conditions expected. Plan irrigation accordingly.';
+                moistureBar.className = 'progress-bar bg-warning';
+            } else {
+                moisturePrediction.textContent = 'Normal soil moisture conditions expected.';
+                moistureBar.className = 'progress-bar bg-info';
+            }
+            
+            moistureBar.style.width = `${moistureLevel}%`;
+            moistureBar.setAttribute('aria-valuenow', moistureLevel);
+            
+            // Update temperature chart if we have forecast data
+            if (data.forecast && data.forecast.length > 0) {
+                updateTemperatureChart(data);
+            }
+        }
+
+        function updateTemperatureChart(data) {
+            const ctx = document.getElementById('temperatureChart').getContext('2d');
+            
+            // Prepare chart data
+            const labels = ['Today', ...data.forecast.map(day => day.day)];
+            const temps = [
+                data.current.temperature,
+                ...data.forecast.map(day => day.temperature)
+            ];
+            const minTemps = [
+                data.current.feels_like,
+                ...data.forecast.map(day => day.min_temp)
+            ];
+            const maxTemps = [
+                data.current.feels_like,
+                ...data.forecast.map(day => day.max_temp)
+            ];
+            
+            // Destroy previous chart if it exists
+            if (temperatureChart) {
+                temperatureChart.destroy();
+            }
+            
+            // Create new chart
+            temperatureChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Temperature (°C)',
-                        data: [22, 24, 27, 23, 20, 18, 21],
-                        backgroundColor: 'rgba(13, 110, 253, 0.2)',
-                        borderColor: 'rgba(13, 110, 253, 1)',
-                        borderWidth: 2,
-                        tension: 0.3
-                    }]
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Day Temperature (°C)',
+                            data: temps,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Min Temperature (°C)',
+                            data: minTemps,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Max Temperature (°C)',
+                            data: maxTemps,
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            backgroundColor : 'rgba(255, 206, 86, 0.2)',
+                            tension: 0.1,
+                            fill: false
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '7-Day Temperature Trend'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: false,
-                            suggestedMin: 15,
-                            suggestedMax: 30
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
                         }
                     }
                 }
             });
-        });
-        
-        // Location selector event handling
-        document.getElementById('location').addEventListener('change', function() {
-            // Code to fetch and display weather for selected location
-            console.log('Location changed to: ' + this.value);
-        });
-        
-        // Date range selector event handling
-        document.getElementById('date-range').addEventListener('change', function() {
-            // Code to update forecast based on selected date range
-            console.log('Date range changed to: ' + this.value);
+        }
+
+        function handleDateRangeChange() {
+            const days = document.getElementById('date-range').value;
+            document.getElementById('forecast-title').textContent = `${days}-Day Forecast`;
+            
+            if (weatherData && weatherData.forecast) {
+                // Slice the forecast data to show only the selected number of days
+                const limitedForecast = weatherData.forecast.slice(0, days);
+                
+                // Update forecast cards
+                const forecastContainer = document.getElementById('forecast-container');
+                forecastContainer.innerHTML = '';
+                
+                limitedForecast.forEach(day => {
+                    const forecastCard = document.createElement('div');
+                    forecastCard.className = 'col-md-3 col-sm-6';
+                    forecastCard.innerHTML = `
+                        <div class="forecast-card">
+                            <div class="forecast-day">${day.day}</div>
+                            <div class="forecast-body">
+                                <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.condition}" class="img-fluid mb-2" style="height: 50px;">
+                                <div class="forecast-temp">${day.temperature}°C</div>
+                                <div class="small">${day.condition}</div>
+                                <div class="small text-muted">${day.precipitation} mm</div>
+                            </div>
+                        </div>
+                    `;
+                    forecastContainer.appendChild(forecastCard);
+                });
+            }
+        }
+
+        function downloadWeatherReport() {
+            if (!weatherData) {
+                alert('No weather data available to download. Please wait for data to load.');
+                return;
+            }
+
+            // Create a simple report object from the weather data
+            const reportData = {
+                location: document.getElementById('location-name').textContent,
+                temperature: document.getElementById('current-temperature').textContent,
+                condition: document.getElementById('current-condition').textContent,
+                humidity: document.getElementById('current-humidity').textContent,
+                windSpeed: document.getElementById('current-wind-speed').textContent,
+                precipitation: document.getElementById('current-precipitation').textContent,
+                feelsLike: document.getElementById('current-feels-like').textContent,
+                forecast: []
+            };
+
+            // Add forecast data
+            const forecastCards = document.querySelectorAll('.forecast-card');
+            forecastCards.forEach(card => {
+                reportData.forecast.push({
+                    day: card.querySelector('.forecast-day').textContent,
+                    temperature: card.querySelector('.forecast-temp').textContent,
+                    condition: card.querySelector('.forecast-body .small').textContent,
+                    precipitation: card.querySelector('.forecast-body .text-muted').textContent
+                });
+            });
+
+            // Generate CSV content
+            let csv = 'Category,Value\n';
+            csv += `Location,${reportData.location}\n`;
+            csv += `Temperature,${reportData.temperature}\n`;
+            csv += `Condition,${reportData.condition}\n`;
+            csv += `Humidity,${reportData.humidity}\n`;
+            csv += `Wind Speed,${reportData.windSpeed}\n`;
+            csv += `Precipitation,${reportData.precipitation}\n`;
+            csv += `Feels Like,${reportData.feelsLike}\n\n`;
+            
+            csv += 'Forecast\nDay,Temperature,Condition,Precipitation\n';
+            reportData.forecast.forEach(day => {
+                csv += `${day.day},${day.temperature},${day.condition},${day.precipitation}\n`;
+            });
+
+            // Create download link
+            const dateStr = new Date().toISOString().split('T')[0];
+            const fileName = `weather_report_${dateStr}.csv`;
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function setupWeatherAlerts() {
+            // Create modal element
+            const modal = document.createElement('div');
+            modal.id = 'weatherAlertModal';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = 'white';
+            modalContent.style.padding = '20px';
+            modalContent.style.borderRadius = '8px';
+
+            modalContent.style.width = '80%';
+            modalContent.style.maxWidth = '500px';
+            
+            // Add title
+            const title = document.createElement('h2');
+            title.textContent = 'Configure Weather Alerts';
+            modalContent.appendChild(title);
+            
+            // Create form
+            const form = document.createElement('form');
+            form.id = 'alertForm';
+            
+            // Location input
+            const locationGroup = document.createElement('div');
+            locationGroup.style.marginBottom = '15px';
+            const locationLabel = document.createElement('label');
+            locationLabel.textContent = 'Location:';
+            locationLabel.style.display = 'block';
+            locationLabel.style.marginBottom = '5px';
+            const locationInput = document.createElement('input');
+            locationInput.type = 'text';
+            locationInput.required = true;
+            locationInput.style.width = '100%';
+            locationInput.style.padding = '8px';
+            locationInput.value = document.getElementById('location-name').textContent;
+            locationGroup.appendChild(locationLabel);
+            locationGroup.appendChild(locationInput);
+            form.appendChild(locationGroup);
+            
+            // Alert conditions
+            const conditionsGroup = document.createElement('div');
+            conditionsGroup.style.marginBottom = '15px';
+            const conditionsLabel = document.createElement('label');
+            conditionsLabel.textContent = 'Alert me when:';
+            conditionsLabel.style.display = 'block';
+            conditionsLabel.style.marginBottom = '5px';
+            
+            const conditions = [
+                { id: 'tempHigh', label: 'Temperature above', unit: '°C' },
+                { id: 'tempLow', label: 'Temperature below', unit: '°C' },
+                { id: 'rain', label: 'Rain expected', unit: 'mm' },
+                { id: 'wind', label: 'Wind speed above', unit: 'km/h' },
+                { id: 'frost', label: 'Frost expected', unit: '' }
+            ];
+            
+            conditions.forEach(condition => {
+                const conditionDiv = document.createElement('div');
+                conditionDiv.style.display = 'flex';
+                conditionDiv.style.alignItems = 'center';
+                conditionDiv.style.marginBottom = '5px';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = condition.id;
+                checkbox.name = condition.id;
+                
+                const label = document.createElement('label');
+                label.htmlFor = condition.id;
+                label.textContent = condition.label;
+                label.style.marginLeft = '5px';
+                label.style.marginRight = '5px';
+                
+                conditionDiv.appendChild(checkbox);
+                conditionDiv.appendChild(label);
+                
+                if (condition.unit) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.id = `${condition.id}Value`;
+                    input.name = `${condition.id}Value`;
+                    input.style.width = '60px';
+                    input.style.marginLeft = '5px';
+                    input.style.padding = '3px';
+                    conditionDiv.appendChild(input);
+                    
+                    const unitSpan = document.createElement('span');
+                    unitSpan.textContent = condition.unit;
+                    unitSpan.style.marginLeft = '5px';
+                    conditionDiv.appendChild(unitSpan);
+                }
+                
+                conditionsGroup.appendChild(conditionDiv);
+            });
+            
+            form.appendChild(conditionsGroup);
+            
+            // Notification method
+            const notifyGroup = document.createElement('div');
+            notifyGroup.style.marginBottom = '15px';
+            const notifyLabel = document.createElement('label');
+            notifyLabel.textContent = 'Notify me via:';
+            notifyLabel.style.display = 'block';
+            notifyLabel.style.marginBottom = '5px';
+            
+            const methods = ['Email', 'SMS', 'Browser Notification'];
+            methods.forEach(method => {
+                const methodDiv = document.createElement('div');
+                
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.id = `notify${method.replace(' ', '')}`;
+                radio.name = 'notificationMethod';
+                radio.value = method.toLowerCase();
+                if (method === 'Email') radio.checked = true;
+                
+                const label = document.createElement('label');
+                label.htmlFor = `notify${method.replace(' ', '')}`;
+                label.textContent = method;
+                label.style.marginLeft = '5px';
+                
+                methodDiv.appendChild(radio);
+                methodDiv.appendChild(label);
+                notifyGroup.appendChild(methodDiv);
+            });
+            
+            form.appendChild(notifyGroup);
+            
+            // Form buttons
+            const buttonGroup = document.createElement('div');
+            buttonGroup.style.display = 'flex';
+            buttonGroup.style.justifyContent = 'space-between';
+            buttonGroup.style.marginTop = '20px';
+            
+            const saveButton = document.createElement('button');
+            saveButton.type = 'submit';
+            saveButton.textContent = 'Save Alerts';
+            saveButton.style.padding = '8px 16px';
+            saveButton.style.backgroundColor = '#4CAF50';
+            saveButton.style.color = 'white';
+            saveButton.style.border = 'none';
+            saveButton.style.borderRadius = '4px';
+            saveButton.style.cursor = 'pointer';
+            
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.textContent = 'Cancel';
+            cancelButton.style.padding = '8px 16px';
+            cancelButton.style.backgroundColor = '#f44336';
+            cancelButton.style.color = 'white';
+            cancelButton.style.border = 'none';
+            cancelButton.style.borderRadius = '4px';
+            cancelButton.style.cursor = 'pointer';
+            cancelButton.addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            buttonGroup.appendChild(cancelButton);
+            buttonGroup.appendChild(saveButton);
+            form.appendChild(buttonGroup);
+            
+            // Form submission
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Gather form data
+                const formData = new FormData(form);
+                const alerts = {
+                    location: locationInput.value,
+                    notificationMethod: formData.get('notificationMethod'),
+                    conditions: {}
+                };
+                
+                conditions.forEach(condition => {
+                    if (formData.get(condition.id)) {
+                        alerts.conditions[condition.id] = formData.get(`${condition.id}Value`) || true;
+                    }
+                });
+                
+                // Save alerts to localStorage
+                localStorage.setItem('weatherAlerts', JSON.stringify(alerts));
+                
+                // Close modal
+                document.body.removeChild(modal);
+                
+                // Show confirmation and update displayed alerts
+                alert('Weather alerts have been saved successfully!');
+                displayAlertsOnPage();
+            });
+            
+            modalContent.appendChild(form);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+        }
+
+        function viewSavedAlerts() {
+            const savedAlerts = localStorage.getItem('weatherAlerts');
+            if (savedAlerts) {
+                const alerts = JSON.parse(savedAlerts);
+                
+                // Create a display modal
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.backgroundColor = 'white';
+                modalContent.style.padding = '20px';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.width = '80%';
+                modalContent.style.maxWidth = '500px';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'Your Saved Weather Alerts';
+                modalContent.appendChild(title);
+                
+                const alertInfo = document.createElement('div');
+                alertInfo.innerHTML = `
+                    <p><strong>Location:</strong> ${alerts.location}</p>
+                    <p><strong>Notification Method:</strong> ${alerts.notificationMethod}</p>
+                    <h3>Alert Conditions:</h3>
+                    <ul>
+                        ${Object.entries(alerts.conditions).map(([key, value]) => 
+                            `<li>${formatConditionName(key)}: ${value === true ? 'Enabled' : value + getUnitForCondition(key)}</li>`
+                        ).join('')}
+                    </ul>
+                `;
+                
+                function formatConditionName(key) {
+                    const names = {
+                        'tempHigh': 'Temperature above',
+                        'tempLow': 'Temperature below',
+                        'rain': 'Rain expected',
+                        'wind': 'Wind speed above',
+                        'frost': 'Frost expected'
+                    };
+                    return names[key] || key;
+                }
+                
+                function getUnitForCondition(key) {
+                    const units = {
+                        'tempHigh': '°C',
+                        'tempLow': '°C',
+                        'rain': 'mm',
+                        'wind': 'km/h'
+                    };
+                    return units[key] || '';
+                }
+                
+                modalContent.appendChild(alertInfo);
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Close';
+                closeButton.style.marginTop = '15px';
+                closeButton.style.padding = '8px 16px';
+                closeButton.style.backgroundColor = '#0d6efd';
+                closeButton.style.color = 'white';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '4px';
+                closeButton.style.cursor = 'pointer';
+                closeButton.addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                modalContent.appendChild(closeButton);
+                
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+            } else {
+                alert('No weather alerts have been saved yet.');
+            }
+        }
+
+        function displayAlertsOnPage() {
+            const savedAlerts = localStorage.getItem('weatherAlerts');
+            const alertsDisplay = document.getElementById('alertsDisplay');
+            const alertsContent = document.getElementById('alertsContent');
+            
+            if (savedAlerts) {
+                const alerts = JSON.parse(savedAlerts);
+                
+                alertsDisplay.style.display = 'block';
+                alertsContent.innerHTML = `
+                    <div class="alert alert-info">
+                        <h5><i class="bi bi-bell-fill"></i> Active Weather Alerts</h5>
+                        <p><strong>Location:</strong> ${alerts.location}</p>
+                        <p><strong>Notifications via:</strong> ${alerts.notificationMethod}</p>
+                        <ul class="mb-0">
+                            ${Object.entries(alerts.conditions).map(([key, value]) => 
+                                `<li>${formatConditionName(key)}: ${value === true ? 'Enabled' : value + getUnitForCondition(key)}</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+                
+                function formatConditionName(key) {
+                    const names = {
+                        'tempHigh': 'Temperature above',
+                        'tempLow': 'Temperature below',
+                        'rain': 'Rain expected',
+                        'wind': 'Wind speed above',
+                        'frost': 'Frost expected'
+                    };
+                    return names[key] || key;
+                }
+                
+                function getUnitForCondition(key) {
+                    const units = {
+                        'tempHigh': '°C',
+                        'tempLow': '°C',
+                        'rain': 'mm',
+                        'wind': 'km/h'
+                    };
+                    return units[key] || '';
+                }
+            } else {
+                alertsDisplay.style.display = 'none';
+            }
+        }
+
+        // Initialize the page
+        window.addEventListener('DOMContentLoaded', function() {
+            displayAlertsOnPage();
         });
     </script>
 </body>
 </html>
+            
+            

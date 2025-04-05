@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash ,jsonify
 import sqlite3
 import os
 import uuid
@@ -15,6 +15,15 @@ import base64
 import cv2
 import io
 from PIL import Image
+from flask_cors import CORS
+from flask_caching import Cache
+app = Flask(__name__)
+CORS(app)
+
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
+cache.init_app(app)
+
+
 
 conn = sqlite3.connect('farm_advisor.db')
 cursor = conn.cursor()
@@ -36,6 +45,10 @@ load_dotenv()
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 GROQ_API_KEY="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"
+
+OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
+if not OPENWEATHERMAP_API_KEY:
+    raise ValueError("Missing OPENWEATHERMAP_API_KEY in environment variables")
 
 # Location-based data retrieval functions
 def get_coordinates(location):
@@ -829,30 +842,263 @@ def update_profile():
 
 
   
-# This would typically fetch real weather data from an API demonstration, we'll use static data
+# This would be in your app.py file
 @app.route('/weather_data')
 def weather_data():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    weather_info = {
-        'current': {
-            'temperature': 28,
-            'humidity': 65,
-            'condition': 'Partly Cloudy',
-            'wind_speed': 12,
-            'precipitation': 0
-        },
-        'forecast': [
-            {'day': 'Tomorrow', 'temperature': 30, 'condition': 'Sunny'},
-            {'day': 'Day 2', 'temperature': 29, 'condition': 'Cloudy'},
-            {'day': 'Day 3', 'temperature': 27, 'condition': 'Rain'},
-            {'day': 'Day 4', 'temperature': 26, 'condition': 'Rain'},
-            {'day': 'Day 5', 'temperature': 28, 'condition': 'Partly Cloudy'}
-        ]
-    }
+    # We'll pass the current date/time to the template
+    # The actual weather data will be fetched via JavaScript
+    return render_template('weather.html', now=datetime.now)
 
-    return render_template('weather.html', weather=weather_info, now=datetime.now)
+@app.route('/api/weather')
+@cache.cached(timeout=15*60)  # Cache for 15 minutes
+def get_weather_data():
+    try:
+        # Get coordinates from the request with better defaults
+        lat = request.args.get('lat', default=40.7128, type=float)  # Default to New York
+        lon = request.args.get('lon', default=-74.0060, type=float)
+        
+        # Verify API key is properly set
+        api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
+        if not api_key:
+            app.logger.error("OpenWeatherMap API key not configured")
+            return jsonify({'error': 'Weather service is currently unavailable'}), 500
+        
+        # Get current weather
+        current_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric"
+        current_response = requests.get(current_url)
+        
+        if current_response.status_code != 200:
+            app.logger.error(f"Current weather API error: {current_response.status_code} - {current_response.text}")
+            return jsonify({'error': 'Weather service is currently unavailable'}), 500
+            
+        current_data = current_response.json()
+        
+        # Process the current weather data with better defaults
+        current_weather = {
+            'location_name': current_data.get('name', 'Unknown Location'),
+            'temperature': round(current_data.get('main', {}).get('temp', 20)),
+            'feels_like': round(current_data.get('main', {}).get('feels_like', 20)),
+            'humidity': current_data.get('main', {}).get('humidity', 50),
+            'condition': current_data.get('weather', [{}])[0].get('main', 'Clear'),
+            'description': current_data.get('weather', [{}])[0].get('description', 'clear sky'),
+            'icon': current_data.get('weather', [{}])[0].get('icon', '01d'),
+            'wind_speed': round(current_data.get('wind', {}).get('speed', 2), 1),
+            'precipitation': current_data.get('rain', {}).get('1h', 0) if 'rain' in current_data else 0
+        }
+
+        # Try to get forecast using 5-day forecast endpoint first (more widely available)
+        forecast = []
+        try:
+            forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={api_key}&units=metric"
+            forecast_response = requests.get(forecast_url)
+            
+            if forecast_response.status_code == 200:
+                forecast_data = forecast_response.json()
+                
+                # Process 5-day/3-hour forecast into daily format
+                # Group by day and calculate daily averages
+                daily_forecasts = {}
+                
+                for item in forecast_data.get('list', []):
+                    dt = datetime.fromtimestamp(item.get('dt', 0))
+                    day = dt.strftime('%Y-%m-%d')
+                    
+                    if day not in daily_forecasts:
+                        daily_forecasts[day] = {
+                            'temps': [],
+                            'conditions': [],
+                            'icons': [],
+                            'precipitation': 0,
+                            'humidity': []
+                        }
+                    
+                    daily_forecasts[day]['temps'].append(item.get('main', {}).get('temp', 20))
+                    daily_forecasts[day]['conditions'].append(item.get('weather', [{}])[0].get('main', 'Clear'))
+                    daily_forecasts[day]['icons'].append(item.get('weather', [{}])[0].get('icon', '01d'))
+                    daily_forecasts[day]['precipitation'] += item.get('rain', {}).get('3h', 0) if 'rain' in item else 0
+                    daily_forecasts[day]['humidity'].append(item.get('main', {}).get('humidity', 50))
+                
+                # Convert to the format expected by the frontend
+                for day, data in daily_forecasts.items():
+                    # Get most common condition and icon
+                    conditions = data['conditions']
+                    most_common_condition = max(set(conditions), key=conditions.count)
+                    
+                    icons = data['icons']
+                    # Filter day icons only for consistency
+                    day_icons = [icon for icon in icons if 'd' in icon]
+                    most_common_icon = max(set(day_icons if day_icons else icons), key=icons.count)
+                    
+                    # Calculate average temperature
+                    avg_temp = sum(data['temps']) / len(data['temps']) if data['temps'] else 20
+                    
+                    dt = datetime.strptime(day, '%Y-%m-%d')
+                    day_name = dt.strftime('%a')
+                    
+                    forecast.append({
+                        'day': day_name,
+                        'temperature': round(avg_temp),
+                        'min_temp': round(min(data['temps']) if data['temps'] else 15),
+                        'max_temp': round(max(data['temps']) if data['temps'] else 25),
+                        'condition': most_common_condition,
+                        'description': most_common_condition.lower(),
+                        'icon': most_common_icon,
+                        'precipitation': round(data['precipitation'], 1),
+                        'humidity': round(sum(data['humidity']) / len(data['humidity']) if data['humidity'] else 50)
+                    })
+            
+        except Exception as forecast_error:
+            app.logger.error(f"Error processing forecast: {str(forecast_error)}")
+            # Continue with empty forecast rather than failing
+            forecast = []
+        
+        # Generate farm advisories
+        advisories = generate_farm_advisories(current_weather, forecast)
+        
+        # Prepare response
+        response = {
+            'current': current_weather,
+            'forecast': forecast[:7],  # Limit to 7 days
+            'advisories': advisories,
+            'status': 'success'
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        app.logger.error(f"Weather API error: {str(e)}")
+        return jsonify({
+            'error': 'Weather service is currently unavailable. Please try again later.',
+            'status': 'error'
+        }), 500
+    
+@app.route('/api/geocode')
+def geocode_location():
+    try:
+        # Get the location query from the request
+        query = request.args.get('q')
+        if not query:
+            app.logger.error("Geocoding error: No location specified")
+            return jsonify({'error': 'No location specified'}), 400
+        
+        # Verify API key is properly set
+        api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
+        if not api_key:
+            app.logger.error("Geocoding error: API key not configured")
+            return jsonify({'error': 'Weather service is currently unavailable'}), 500
+        
+        # Log the request we're about to make
+        geocode_url = f"http://api.openweathermap.org/geo/1.0/direct?q={query}&limit=5&appid={api_key}"
+        app.logger.info(f"Making geocoding request for: {query}")
+        
+        # Call OpenWeatherMap's geocoding API with a timeout
+        response = requests.get(geocode_url, timeout=10)
+        
+        # Log the response status
+        app.logger.info(f"Geocoding API response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            app.logger.error(f"Geocoding API error: {response.status_code} - {response.text}")
+            return jsonify({
+                'error': 'Failed to geocode location',
+                'status_code': response.status_code,
+                'message': response.text
+            }), 500
+        
+        # Try to parse the JSON response
+        try:
+            location_data = response.json()
+        except ValueError as json_error:
+            app.logger.error(f"Failed to parse geocoding response: {str(json_error)}")
+            return jsonify({'error': 'Invalid response from geocoding service'}), 500
+        
+        # Check if we got any results
+        if not location_data:
+            app.logger.info(f"No locations found for query: {query}")
+            return jsonify([])  # Return empty array, not an error
+            
+        # Simplify the response to just what we need
+        simplified_data = []
+        for location in location_data:
+            simplified_data.append({
+                'name': location.get('name', 'Unknown'),
+                'lat': location.get('lat'),
+                'lon': location.get('lon'),
+                'country': location.get('country', ''),
+                'state': location.get('state', '')
+            })
+        
+        return jsonify(simplified_data)
+        
+    except requests.exceptions.RequestException as req_error:
+        # Handle network or timeout errors
+        app.logger.error(f"Geocoding request error: {str(req_error)}")
+        return jsonify({
+            'error': 'Unable to connect to geocoding service',
+            'details': str(req_error)
+        }), 500
+    except Exception as e:
+        # Catch all other errors
+        app.logger.error(f"Unexpected geocoding error: {str(e)}")
+        return jsonify({
+            'error': 'Weather service is currently unavailable',
+            'details': str(e)
+        }), 500
+    
+def generate_farm_advisories(current, forecast):
+    """Generate farming recommendations and alerts based on weather conditions"""
+    alerts = []
+    recommendations = []
+    
+    # Check for extreme temperatures
+    if current['temperature'] > 35:
+        alerts.append({
+            'title': 'Heat Warning',
+            'message': 'Extreme heat conditions may stress crops and livestock. Ensure adequate shade and hydration.'
+        })
+        recommendations.append('Water crops during early morning or evening to minimize evaporation')
+        recommendations.append('Check irrigation systems for optimal function')
+    
+    # Check for precipitation
+    total_precipitation = sum(day.get('precipitation', 0) for day in forecast)
+    if total_precipitation > 50:
+        alerts.append({
+            'title': 'Heavy Rain Expected',
+            'message': f'Approximately {round(total_precipitation)}mm of rain expected in the next 7 days. Check drainage systems.'
+        })
+        recommendations.append('Inspect and clear drainage ditches')
+        recommendations.append('Consider delaying fertilizer application')
+    elif total_precipitation < 5:
+        alerts.append({
+            'title': 'Dry Conditions',
+            'message': 'Limited rainfall expected. Monitor soil moisture levels.'
+        })
+        recommendations.append('Plan irrigation schedule for coming week')
+        recommendations.append('Consider applying mulch to retain soil moisture')
+    
+    # Wind advisories
+    if current['wind_speed'] > 10:
+        alerts.append({
+            'title': 'Strong Winds',
+            'message': f'Wind speeds of {current["wind_speed"]}m/s may affect spraying operations and young plants.'
+        })
+        recommendations.append('Delay pesticide spraying until wind conditions improve')
+    
+    # Default recommendations if none were generated
+    if not recommendations:
+        recommendations = [
+            'Regular monitoring of crop health is recommended',
+            'Check soil moisture levels before irrigation',
+            'Monitor for pest activity in current conditions'
+        ]
+    
+    return {
+        'alerts': alerts,
+        'recommendations': recommendations
+    }
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -893,4 +1139,7 @@ def favicon():
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    if not OPENWEATHERMAP_API_KEY:
+        print("Error: OPENWEATHERMAP_API_KEY not set!")
+        exit(1)
     app.run(debug=True)
