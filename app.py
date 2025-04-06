@@ -17,25 +17,21 @@ import io
 from PIL import Image
 from flask_cors import CORS
 from flask_caching import Cache
+
+# Initialize Flask app (ONLY ONCE at the top)
 app = Flask(__name__)
-CORS(app)
-
-cache = Cache(config={'CACHE_TYPE': 'SimpleCache'})
-cache.init_app(app)
-
-
-
-conn = sqlite3.connect('farm_advisor.db')
-cursor = conn.cursor()
-cursor.execute("PRAGMA journal_mode=WAL;")  # Enables Write-Ahead Logging
-conn.commit()
-conn.close()
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.secret_key = "farmadvisorapp2025"  # Set secret key here
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Enable CORS
+CORS(app)
+
+# Configure Flask-Caching (SimpleCache for development)
+cache = Cache(app, config={
+    'CACHE_TYPE': 'SimpleCache',
+    'CACHE_DEFAULT_TIMEOUT': 300  # 5 minutes
+})
 
 # Configure Groq client
 groq_client = Groq(api_key="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")
@@ -185,9 +181,6 @@ def get_db_connection():
     conn.execute("PRAGMA journal_mode=WAL;")  # Enable WAL mode here
     return conn
 
-app = Flask(__name__)
-app.secret_key = "farmadvisorapp2025"
-
 def init_db():
     conn = sqlite3.connect('farm_advisor.db')
     cursor = conn.cursor()
@@ -284,8 +277,6 @@ def register():
             flash('Username or email already exists!', 'error')
 
     return render_template('register.html')
-
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -1131,6 +1122,32 @@ def final_report():
         return redirect(url_for('dashboard'))  # Redirect to a different page if no reports exist
 
     return render_template('final_report.html', reports=reports)  # Pass reports (list), not report (single)
+
+@app.route('/delete_report/<report_id>', methods=['POST'])
+def delete_report(report_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    conn = sqlite3.connect('farm_advisor.db')
+    cursor = conn.cursor()
+    
+    # First verify the report belongs to the current user
+    cursor.execute("SELECT user_id FROM reports WHERE report_id = ?", (report_id,))
+    report = cursor.fetchone()
+    
+    if not report or report[0] != session['user_id']:
+        conn.close()
+        flash('Report not found or you do not have permission to delete it!', 'danger')
+        return redirect(url_for('final_report'))
+    
+    # Delete the report
+    cursor.execute("DELETE FROM reports WHERE report_id = ?", (report_id,))
+    conn.commit()
+    conn.close()
+    
+    flash('Report successfully deleted!', 'success')
+    return redirect(url_for('final_report'))
+
 
 # Create a simple favicon route to avoid 404 errors
 @app.route('/favicon.ico')
