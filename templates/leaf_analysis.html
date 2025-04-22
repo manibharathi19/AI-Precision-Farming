@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Leaf Analysis - Fertilizer Recommendation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
+        }
+        h1, h2 {
+            color: #28a745;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .upload-area {
+            border: 2px dashed #28a745;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            background-color: rgba(40, 167, 69, 0.05);
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            padding: 10px 25px;
+            margin: 10px 0;
+        }
+        .upload-icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+            display: none;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #file-upload {
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: #28a745;
+        }
+        .feature-card {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+        .feature-icon {
+            font-size: 24px;
+            color: #28a745;
+            margin-right: 10px;
+        }
+        .image-preview-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .progress {
+            height: 10px;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            background-color: #28a745;
+        }
+        #camera-modal .modal-body {
+            text-align: center;
+        }
+        #camera-feed {
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        .upload-options {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .upload-option-btn {
+            padding: 15px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            border: 2px solid #28a745;
+            background-color: white;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .upload-option-btn:hover {
+            background-color: rgba(40, 167, 69, 0.1);
+        }
+        .upload-option-btn i {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+        .active-option {
+            background-color: #28a745;
+            color: white;
+        }
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-home {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .btn-home:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-leaf"></i> Smart Leaf Analysis</h1>
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Upload a clear image of a leaf to analyze its health and get personalized fertilizer recommendations.
+                </div>
+            </div>
+        </div>
+        
+        <form action="/process_leaf" method="post" enctype="multipart/form-data" id="leaf-form">
+            <!-- Upload Options -->
+            <div class="upload-options">
+                <div class="upload-option-btn active-option" id="upload-file-btn">
+                    <i class="fas fa-upload"></i> Upload File
+                </div>
+                <div class="upload-option-btn" id="use-camera-btn">
+                    <i class="fas fa-camera"></i> Use Camera
+                </div>
+            </div>
+            
+            <!-- File Upload Section -->
+            <div id="file-upload-section">
+                <div class="upload-area" id="drop-area">
+                    <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <p>Click to select or drag and drop a leaf image here</p>
+                    <p class="text-muted">Supported formats: JPG, PNG</p>
+                    <input type="file" id="file-upload" name="leaf_image" accept="image/jpeg, image/png" onchange="previewImage(this)">
+                    <div class="image-preview-container">
+                        <img id="preview-image" src="#" alt="Leaf image preview">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Camera Section (initially hidden) -->
+            <div id="camera-section" style="display: none;">
+                <div class="upload-area">
+                    <div class="upload-icon"><i class="fas fa-camera"></i></div>
+                    <p>Click the button below to capture a leaf image</p>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#camera-modal">
+                        <i class="fas fa-camera"></i> Open Camera
+                    </button>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-success" id="analyze-btn" disabled>
+                    <i class="fas fa-microscope"></i> Analyze Leaf
+                </button>
+                <div class="back-home">
+                    <a href="/dashboard" class="btn-home">Back to Home</a>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading-indicator">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Analyzing leaf image with AI...</p>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h5><i class="feature-icon fas fa-tint"></i> Real-time Analysis</h5>
+                    <p>AI-powered analysis of leaf color and condition</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h5><i class="feature-icon fas fa-flask"></i> Custom Recommendations</h5>
+                    <p>Personalized fertilizer suggestions</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h5><i class="feature-icon fas fa-seedling"></i> Improved Yields</h5>
+                    <p>Optimize plant health and crop production</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Camera Modal -->
+    <div class="modal fade" id="camera-modal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraModalLabel">Take a Leaf Photo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <video id="camera-feed" autoplay></video>
+                    <button id="capture-btn" class="btn btn-success"><i class="fas fa-camera"></i> Capture Photo</button>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between upload options
+        document.getElementById('upload-file-btn').addEventListener('click', function() {
+            document.getElementById('file-upload-section').style.display = 'block';
+            document.getElementById('camera-section').style.display = 'none';
+            document.getElementById('upload-file-btn').classList.add('active-option');
+            document.getElementById('use-camera-btn').classList.remove('active-option');
+        });
+        
+        document.getElementById('use-camera-btn').addEventListener('click', function() {
+            document.getElementById('file-upload-section').style.display = 'none';
+            document.getElementById('camera-section').style.display = 'block';
+            document.getElementById('use-camera-btn').classList.add('active-option');
+            document.getElementById('upload-file-btn').classList.remove('active-option');
+        });
+
+        function previewImage(input) {
+            const previewImg = document.getElementById('preview-image');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    analyzeBtn.disabled = false;
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Handle form submission with loading indicator
+        document.getElementById('leaf-form').addEventListener('submit', function(e) {
+            document.getElementById('loading-indicator').style.display = 'block';
+            document.getElementById('analyze-btn').disabled = true;
+            
+            // Fake progress bar animation
+            let progress = 0;
+            const progressBar = document.querySelector('.progress-bar');
+            const progressInterval = setInterval(function() {
+                progress += Math.random() * 15;
+                if (progress > 90) {
+                    clearInterval(progressInterval);
+                    progress = 90; // Stay at 90% until actual completion
+                }
+                progressBar.style.width = progress + '%';
+                progressBar.setAttribute('aria-valuenow', progress);
+            }, 500);
+        });
+
+        // Drag and drop functionality
+        const dropArea = document.getElementById('drop-area');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('bg-light');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('bg-light');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            document.getElementById('file-upload').files = files;
+            previewImage(document.getElementById('file-upload'));
+        }
+        
+        // Click on upload area to trigger file input
+        dropArea.addEventListener('click', function() {
+            document.getElementById('file-upload').click();
+        });
+        
+        // Camera functionality
+        let stream;
+        const cameraFeed = document.getElementById('camera-feed');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        
+        document.getElementById('camera-modal').addEventListener('shown.bs.modal', function() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(mediaStream) {
+                        stream = mediaStream;
+                        cameraFeed.srcObject = mediaStream;
+                        cameraFeed.play();
+                    })
+                    .catch(function(error) {
+                        console.error("Could not access camera: ", error);
+                        alert("Could not access your camera. Please make sure you have a camera and have given permission to use it.");
+                    });
+            } else {
+                alert("Your browser does not support camera access.");
+            }
+        });
+        
+        document.getElementById('camera-modal').addEventListener('hidden.bs.modal', function() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+        
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            canvas.width = cameraFeed.videoWidth;
+            canvas.height = cameraFeed.videoHeight;
+            context.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+            
+            // Convert to file and set in file input
+            canvas.toBlob(function(blob) {
+                const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+                
+                // Create a DataTransfer object to set the file
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('file-upload').files = dataTransfer.files;
+                
+                // Show preview and enable analyze button
+                const previewImg = document.getElementById('preview-image');
+                previewImg.src = canvas.toDataURL('image/jpeg');
+                previewImg.style.display = 'block';
+                document.getElementById('analyze-btn').disabled = false;
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('camera-modal'));
+                modal.hide();
+                
+                // Switch back to file upload view to show the captured image
+                document.getElementById('file-upload-section').style.display = 'block';
+                document.getElementById('camera-section').style.display = 'none';
+                document.getElementById('upload-file-btn').classList.add('active-option');
+                document.getElementById('use-camera-btn').classList.remove('active-option');
+            }, 'image/jpeg', 0.9);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

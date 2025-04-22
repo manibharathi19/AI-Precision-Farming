@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Recommendation Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        .result-header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .result-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .result-section-title {
+            color: #28a745;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .parameter-item {
+            background-color: white;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .parameter-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .parameter-value {
+            font-size: 1.2em;
+            color: #333;
+            font-weight: bold;
+        }
+        .ai-recommendation {
+            background-color: #e8f5e9;
+            border-left: 6px solid #28a745;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        .recommendation-title {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="result-header">
+            <h1>Crop Recommendation Report</h1>
+        </div>
+
+        <div class="result-section">
+            <h3 class="result-section-title">Location Details</h3>
+            <div class="parameter-item">
+                <div class="parameter-label">Location</div>
+                <div class="parameter-value">{{ soil_data.Location }}</div>
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h3 class="result-section-title">Soil Parameters</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
+                    <div class="parameter-item">
+                        <div class="parameter-label">{{ param }}</div>
+                        <div class="parameter-value">
+                            {{ soil_data[param] }}
+                            {% if param != 'pH' %} <small class="text-muted">mg/kg</small>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h3 class="result-section-title">Weather Parameters</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
+                    <div class="parameter-item">
+                        <div class="parameter-label">{{ param }}</div>
+                        <div class="parameter-value">
+                            {{ soil_data[param] }}
+                            {% if param == 'Rainfall' %}<small class="text-muted"> mm</small>
+                            {% elif param == 'Temperature' %}<small class="text-muted"> °C</small>
+                            {% elif param == 'Humidity' %}<small class="text-muted"> %</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="ai-recommendation">
+                <h3 class="recommendation-title">Crop Recommendations</h3>
+                <ul class="recommendation-list">
+                    {% for recommendation in crop_recommendation.split('•') %}
+                        {% if recommendation.strip() %}
+                        <li>{{ recommendation.strip() }}</li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6 d-grid">
+                <a href="/dashboard" class="btn btn-outline-success">Back to Home</a>
+            </div>
+            <div class="col-md-6 d-grid">
+                <a href="/final_report/" class="btn btn-success">Download Report</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

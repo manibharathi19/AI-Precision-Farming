@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 50px;
+        }
+        h1, h2 {
+            color: #28a745;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            padding: 10px 25px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .option-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .option-card:hover {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+        }
+        .option-header {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #28a745;
+        }
+        .back-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-home {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .btn-home:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Crop Recommendation System</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="option-card" onclick="location.href='/input_form'">
+                    <div class="option-header">Option 1: I know my soil parameters</div>
+                    <p>If you have already tested your soil and know the nitrogen, phosphorus, potassium levels, pH, and other parameters.</p>
+                    <div class="d-grid gap-2">
+                        <a href="/manual_soil" class="btn btn-outline-success">Enter Soil Parameters</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="option-card" onclick="location.href='#location-form'">
+                    <div class="option-header">Option 2: I don't know my soil parameters</div>
+                    <p>Enter your location (PIN code or city name) and we'll fetch the soil and weather data for you.</p>
+                    <div class="d-grid gap-2">
+                        <a href="location-form" class="btn btn-outline-success">Use My Location</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Home Button -->
+        <div class="back-home">
+            <a href="/dashboard" class="btn-home">Back to Home</a>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
