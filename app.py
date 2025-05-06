@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime 
+from datetime import timedelta
 import numpy as np
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,12 +18,45 @@ import io
 from PIL import Image
 from flask_cors import CORS
 from flask_caching import Cache
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from functools import lru_cache
+# from googletrans import Translator
+from deep_translator import GoogleTranslator
+import json
+import os
+from translation import register_translation_handlers
+from translation import test_translation_service
+
 
 # Initialize Flask app (ONLY ONCE at the top)
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.jinja_env.auto_reload = True           # Force template reload
+app.jinja_env.cache = None 
+
 app.secret_key = "farmadvisorapp2025"  # Set secret key here
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+app.config['SESSION_TYPE'] = 'filesystem'  # Or 'redis' for production
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
+
+@app.after_request
+def add_no_cache_headers(response):
+    """Kill all caching for dynamic pages"""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=24),
+    SESSION_REFRESH_EACH_REQUEST=True
+)
+
+register_translation_handlers(app)
 
 # Enable CORS
 CORS(app)
@@ -237,6 +271,128 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 if not os.path.exists('static'):
     os.makedirs('static')
 
+# ----------------------------------------------------------------------------------------
+
+
+@app.route('/test_translation')
+def test_translation():
+    test_text = {
+        'en': 'Hello World',
+        'ta': translate_text('Hello World', 'en', 'ta'),
+        'hi': translate_text('Hello World', 'en', 'hi'),
+        'te': translate_text('Hello World', 'en', 'te')
+    }
+    return jsonify(test_text)
+
+# Make sure session['language'] is available in all templates
+@app.context_processor
+def inject_language():
+    return {'language': session.get('language', 'en')}
+
+# Initialize translator with multiple fallback servers
+translator = GoogleTranslator(service_urls=[
+    'translate.google.com',
+    'translate.google.co.kr',
+    'translate.google.co.in',
+])
+
+# Create a translations cache directory if it doesn't exist
+os.makedirs('translations_cache', exist_ok=True)
+
+# Dictionary to store translations in memory
+translation_cache = {}
+
+# Load existing translations from files to reduce API calls
+def load_cached_translations():
+    global translation_cache
+    try:
+        for lang in ['hi', 'ta', 'te']:
+            cache_file = f'translations_cache/{lang}.json'
+            if os.path.exists(cache_file):
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    lang_cache = json.load(f)
+                    translation_cache[lang] = lang_cache
+                    print(f"Loaded {len(lang_cache)} cached translations for {lang}")
+    except Exception as e:
+        print(f"Error loading translation cache: {e}")
+        translation_cache = {'hi': {}, 'ta': {}, 'te': {}}
+
+# Save translations to file
+def save_translations_to_cache():
+    for lang, translations in translation_cache.items():
+        try:
+            with open(f'translations_cache/{lang}.json', 'w', encoding='utf-8') as f:
+                json.dump(translations, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Error saving translation cache for {lang}: {e}")
+
+# Load cached translations on startup
+load_cached_translations()
+
+@lru_cache(maxsize=100)
+
+def translate_text(text, source_lang="en", target_lang="hi"):
+    print(f"TRANSLATION REQUEST: {text} => {target_lang}")  # Debug
+    if not text or not text.strip() or source_lang == target_lang:
+        return text
+    
+    text = str(text)
+    
+    # Check cache first
+    if target_lang in translation_cache and text in translation_cache[target_lang]:
+        print(f"CACHE HIT: {translation_cache[target_lang][text]}")  # Debug
+        return translation_cache[target_lang][text]
+    
+    try:
+        # Actual translation happens here
+        translated = translator.translate(text, src=source_lang, dest=target_lang).text
+        print(f"TRANSLATION RESULT: {translated}")  # Debug
+        
+        # Update cache
+        if target_lang not in translation_cache:
+            translation_cache[target_lang] = {}
+        translation_cache[target_lang][text] = translated
+        
+        return translated
+    except Exception as e:
+        print(f"TRANSLATION ERROR: {str(e)}")
+        return text
+
+def register_translation_handlers(app):
+    """Register translation handlers with the Flask app"""
+    
+    @app.template_filter('translate')
+    def translate_filter(text):
+        current_lang = session.get('language', 'en')
+        print(f"Translating '{text}' to {current_lang}")  # Debug
+        if current_lang == 'en':
+            return text
+        return translate_text(str(text), 'en', current_lang)
+    
+    @app.route('/translate', methods=['POST'])
+    def translate_route():
+        print(f"Current session: {dict(session)}")  # Debug current session
+        if 'user_id' not in session:
+            return jsonify({"success": False, "error": "Not logged in"}), 401
+        
+        lang = request.args.get('lang', 'en')
+        print(f"Setting language to: {lang}")  # Debug
+        
+        if lang not in ['en', 'hi', 'ta', 'te']:
+            return jsonify({"success": False, "error": "Unsupported language"}), 400
+        
+        session['language'] = lang
+        session.modified = True  # Explicitly mark session as modified
+        print(f"Session after setting: {dict(session)}")  # Debug
+        
+        return jsonify({"success": True, "language": lang})
+    
+    @app.route('/test_session')
+    def test_session():
+        session['test'] = session.get('test', 0) + 1
+        return f"Session test value: {session['test']}"
+# -------------------------------------------------------------------------------------------
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -245,6 +401,10 @@ def get_db_connection():
     conn = sqlite3.connect('farm_advisor.db')
     conn.row_factory = sqlite3.Row  # Return dictionary-like rows
     return conn
+
+@app.route('/test_translator')
+def test_translator():
+    return test_translation_service()
 
 # Routes
 @app.route('/')
