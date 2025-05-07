@@ -489,6 +489,69 @@ def input_form():
     return render_template('input_form.html')
 
 @app.route('/process_input', methods=['POST'])
+# def process_input():
+#     if 'user_id' not in session:
+#         return redirect(url_for('login'))
+
+#     if request.method == 'POST':
+#         # Get form data
+#         nitrogen = float(request.form['nitrogen'])
+#         phosphorus = float(request.form['phosphorus'])
+#         potassium = float(request.form['potassium'])
+#         ph = float(request.form['ph'])
+#         rainfall = float(request.form['rainfall'])
+#         temperature = float(request.form['temperature'])
+#         humidity = float(request.form['humidity'])
+
+#         # Store data in session
+#         soil_data = {
+#             'Nitrogen': nitrogen,
+#             'Phosphorus': phosphorus,
+#             'Potassium': potassium,
+#             'pH': ph,
+#             'Rainfall': rainfall,
+#             'Temperature': temperature,
+#             'Humidity': humidity
+#         }
+#         session['soil_data'] = soil_data
+
+#         # Get AI-based crop recommendation from Groq API
+#         crop_recommendation = get_groq_prediction(soil_data)
+
+#         # Store recommendation in session
+#         session['crop_recommendation'] = crop_recommendation
+#         print(crop_recommendation)
+
+#         # Save to SQLite database
+#         report_id = session.get('report_id', str(uuid.uuid4()))
+
+#         conn = sqlite3.connect('farm_advisor.db')
+#         cursor = conn.cursor()
+#         cursor.execute('''
+#         INSERT INTO reports 
+#         (user_id, report_id, crop_recommendation, soil_n, soil_p, soil_k, soil_ph, rainfall, temperature, humidity)
+#         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+#         ''', (
+#             session['user_id'],
+#             report_id,
+#             crop_recommendation,
+#             nitrogen,
+#             phosphorus,
+#             potassium,
+#             ph,
+#             rainfall,
+#             temperature,
+#             humidity
+#         ))
+#         conn.commit()
+#         conn.close()
+
+#         # Pass both crop_recommendation AND soil_data to the template
+#         return render_template('results_page.html', 
+#                               crop_recommendation=crop_recommendation,
+#                               soil_data=soil_data)  # Add this line
+
+#     return redirect(url_for('input_form'))
 def process_input():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -502,9 +565,11 @@ def process_input():
         rainfall = float(request.form['rainfall'])
         temperature = float(request.form['temperature'])
         humidity = float(request.form['humidity'])
+        location = request.form.get('location', 'Not Available')  # Get location if available
 
         # Store data in session
         soil_data = {
+            'Location': location,
             'Nitrogen': nitrogen,
             'Phosphorus': phosphorus,
             'Potassium': potassium,
@@ -520,6 +585,10 @@ def process_input():
 
         # Store recommendation in session
         session['crop_recommendation'] = crop_recommendation
+        print(crop_recommendation)
+
+        # Parse the recommendation text into structured data
+        structured_recommendation = parse_crop_recommendation(crop_recommendation)
 
         # Save to SQLite database
         report_id = session.get('report_id', str(uuid.uuid4()))
@@ -545,12 +614,143 @@ def process_input():
         conn.commit()
         conn.close()
 
-        # Pass both crop_recommendation AND soil_data to the template
+        # Pass both raw and structured data to the template
         return render_template('results_page.html', 
                               crop_recommendation=crop_recommendation,
-                              soil_data=soil_data)  # Add this line
+                              structured_recommendation=structured_recommendation,
+                              soil_data=soil_data)
 
     return redirect(url_for('input_form'))
+
+def parse_crop_recommendation(recommendation_text):
+    """
+    Parse the crop recommendation text into a structured format that handles various recommendation formats
+    """
+    # Create a structured format for the recommendations
+    structured_data = {
+        'introduction': '',
+        'top_crops': [],
+        'suitability': [],
+        'care_instructions': {},
+        'warnings': [],
+        'conclusion': ''
+    }
+    
+    # Clean up the text - remove excessive spaces and normalize line breaks
+    clean_text = ' '.join(recommendation_text.replace('\n\n', '\n').split())
+    
+    # Split by main sections using the ** markers
+    sections = {}
+    current_section = 'introduction'
+    
+    # First extract main sections
+    lines = recommendation_text.split('\n')
+    for i, line in enumerate(lines):
+        line = line.strip()
+        
+        # Skip empty lines
+        if not line:
+            continue
+            
+        # Check if this is a section header
+        if line.startswith('**') and line.endswith('**'):
+            current_section = line.strip('*').strip()
+            sections[current_section] = []
+        else:
+            # Add content to current section
+            if current_section in sections:
+                sections[current_section].append(line)
+            else:
+                # If no section is defined yet, it's part of introduction
+                if 'introduction' not in sections:
+                    sections['introduction'] = []
+                sections['introduction'].append(line)
+    
+    # Process the introduction
+    if 'introduction' in sections:
+        structured_data['introduction'] = ' '.join(sections['introduction'])
+    
+    # Process Top Recommended Crops section
+    if 'Top 3 Recommended Crops:' in sections:
+        crops_text = ' '.join(sections['Top 3 Recommended Crops:'])
+        # Extract numbered crops with descriptions
+        import re
+        crop_matches = re.findall(r'(\d+)\.\s+\*\*(.*?)\*\*:\s+(.*?)(?=\d+\.\s+\*\*|\Z)', crops_text + ' ', re.DOTALL)
+        
+        for match in crop_matches:
+            num, name, desc = match
+            structured_data['top_crops'].append({
+                'number': num,
+                'name': name.strip(),
+                'description': desc.strip()
+            })
+    
+    # If we didn't find numbered crops, try another approach
+    if not structured_data['top_crops'] and 'Top 3 Recommended Crops:' in sections:
+        lines = ' '.join(sections['Top 3 Recommended Crops:']).split('**')
+        for i in range(1, len(lines), 2):
+            if i+1 < len(lines) and ':' in lines[i]:
+                name, desc = lines[i].split(':', 1)
+                structured_data['top_crops'].append({
+                    'number': str(len(structured_data['top_crops']) + 1),
+                    'name': name.strip(),
+                    'description': desc.strip()
+                })
+    
+    # Process Why these crops are suitable section
+    if 'Why these crops are suitable:' in sections:
+        for line in sections['Why these crops are suitable:']:
+            if line.startswith('* '):
+                structured_data['suitability'].append(line[2:])
+    
+    # Process Care Instructions section
+    care_section_name = None
+    for section_name in sections.keys():
+        if 'Care Instructions' in section_name:
+            care_section_name = section_name
+            break
+    
+    if care_section_name:
+        current_crop = None
+        
+        for line in sections[care_section_name]:
+            if line.startswith('1. **') or line.startswith('2. **') or line.startswith('3. **'):
+                # This is a new crop care instruction
+                parts = line.split('**', 2)
+                if len(parts) >= 2:
+                    current_crop = parts[1].strip(':')
+                    structured_data['care_instructions'][current_crop] = []
+            elif line.startswith('* ') and current_crop:
+                instruction = line[2:]
+                structured_data['care_instructions'][current_crop].append(instruction)
+    
+    # Process Warnings section
+    warnings_section_name = None
+    for section_name in sections.keys():
+        if 'Warnings' in section_name or 'Special Considerations' in section_name:
+            warnings_section_name = section_name
+            break
+    
+    if warnings_section_name:
+        for line in sections[warnings_section_name]:
+            if line.startswith('* '):
+                structured_data['warnings'].append(line[2:])
+    
+    # Process conclusion (if any)
+    conclusion_found = False
+    conclusion_lines = []
+    
+    for i, line in enumerate(lines):
+        if 'following these recommendations' in line.lower() or 'by following these' in line.lower():
+            conclusion_found = True
+        
+        if conclusion_found:
+            conclusion_lines.append(line)
+    
+    if conclusion_lines:
+        structured_data['conclusion'] = ' '.join(conclusion_lines)
+    
+    return structured_data
 
 @app.route('/process_location', methods=['POST'])
 def process_location():
