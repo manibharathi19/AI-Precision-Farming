@@ -1,158 +1,914 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crop Recommendation Results</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
     <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: 'Arial', sans-serif;
+      :root {
+        --primary-color: #28a745;
+        --primary-dark: #1e7e34;
+        --secondary-color: #4caf50;
+        --accent-color: #ffc107;
+        --light-bg: #f4f6f9;
+        --text-dark: #333;
+        --text-medium: #555;
+        --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        --hover-transform: translateY(-5px);
+      }
+
+      body {
+        background-color: var(--light-bg);
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: var(--text-dark);
+        line-height: 1.6;
+      }
+
+      .container {
+        max-width: 1100px;
+        margin: 40px auto;
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .result-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-dark)
+        );
+        color: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 35px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .result-header::before {
+        content: "";
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 150px;
+        height: 150px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 0;
+      }
+
+      .result-header::after {
+        content: "";
+        position: absolute;
+        bottom: -40px;
+        left: -40px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        z-index: 0;
+      }
+
+      .result-header h1 {
+        position: relative;
+        z-index: 1;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .result-header p {
+        position: relative;
+        z-index: 1;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .result-section {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: var(--box-shadow);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .result-section:hover {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .result-section-title {
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+      }
+
+      .result-section-title i {
+        background-color: var(--primary-color);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .parameter-item {
+        background-color: white;
+        border-left: 4px solid var(--primary-color);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .parameter-item::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-color), transparent);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+      }
+
+      .parameter-item:hover {
+        transform: var(--hover-transform);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .parameter-item:hover::after {
+        transform: scaleX(1);
+      }
+
+      .parameter-label {
+        font-weight: 600;
+        color: var(--text-medium);
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+      }
+
+      .parameter-value {
+        font-size: 1.4em;
+        color: var(--text-dark);
+        font-weight: bold;
+      }
+
+      .parameter-value small {
+        font-size: 0.6em;
+        opacity: 0.7;
+        margin-left: 5px;
+      }
+
+      /* Recommendation Sections */
+      .recommendations-container {
+        background-color: #e8f5e9;
+        border-radius: 12px;
+        padding: 35px;
+        margin-bottom: 35px;
+        box-shadow: var(--box-shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .recommendations-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(
+          135deg,
+          rgba(40, 167, 69, 0.1),
+          transparent
+        );
+        border-radius: 0 0 0 100%;
+      }
+
+      .recommendations-title {
+        color: var(--primary-color);
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--primary-color);
+        position: relative;
+        display: inline-block;
+      }
+
+      .recommendations-title i {
+        background-color: var(--primary-color);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .intro-section {
+        background-color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border-left: 5px solid var(--primary-color);
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      /* Top Crops Section */
+      .top-crops-section {
+        margin-bottom: 35px;
+      }
+
+      .section-title {
+        color: var(--primary-color);
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #c8e6c9;
+        display: flex;
+        align-items: center;
+      }
+
+      .section-title i {
+        margin-right: 12px;
+        color: var(--primary-color);
+      }
+
+      .crop-card {
+        background-color: white;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 25px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        height: 100%;
+      }
+
+      .crop-card:hover {
+        transform: var(--hover-transform);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .crop-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-dark)
+        );
+        color: white;
+        padding: 18px 20px;
+        font-weight: 600;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .crop-header::after {
+        content: "";
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+      }
+
+      .crop-number {
+        background-color: white;
+        color: var(--primary-color);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        position: relative;
+        z-index: 1;
+      }
+
+      .crop-content {
+        padding: 25px;
+      }
+
+      .crop-description {
+        color: var(--text-medium);
+        line-height: 1.7;
+        font-size: 1.05rem;
+      }
+
+      /* Why Suitable Section */
+      .suitability-section {
+        background-color: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: var(--box-shadow);
+      }
+
+      .suitability-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+      }
+
+      .suitability-item {
+        padding: 15px;
+        border-left: 4px solid var(--primary-color);
+        background-color: #f5f5f5;
+        margin-bottom: 15px;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .suitability-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .suitability-item::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary-color), transparent);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+      }
+
+      .suitability-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .suitability-item:hover::after {
+        transform: scaleX(1);
+      }
+
+      .suitability-item i {
+        color: var(--primary-color);
+        margin-right: 12px;
+        font-size: 1.1rem;
+      }
+
+      /* Care Instructions Section */
+      .care-instructions-section {
+        margin-bottom: 35px;
+      }
+
+      .care-card {
+        background-color: white;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 25px;
+        box-shadow: var(--box-shadow);
+        border: 1px solid #e0e0e0;
+        height: 100%;
+        transition: all 0.3s ease;
+      }
+
+      .care-card:hover {
+        transform: var(--hover-transform);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .care-header {
+        background: linear-gradient(
+          135deg,
+          var(--secondary-color),
+          var(--primary-color)
+        );
+        color: white;
+        padding: 18px 20px;
+        font-weight: 600;
+        font-size: 1.25rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .care-header::after {
+        content: "";
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+      }
+
+      .care-content {
+        padding: 25px;
+      }
+
+      .care-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+      }
+
+      .care-item {
+        padding: 12px 15px;
+        border-left: 3px solid var(--secondary-color);
+        background-color: #f5f5f5;
+        margin-bottom: 12px;
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+      }
+
+      .care-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .care-item:hover {
+        transform: translateX(5px);
+        background-color: #f0f0f0;
+      }
+
+      .care-item i {
+        color: var(--secondary-color);
+        margin-right: 12px;
+      }
+
+      /* Warnings Section */
+      .warnings-section {
+        background-color: #fff9c4;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: var(--box-shadow);
+        border: 1px solid #fff59d;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .warnings-section::before {
+        content: "";
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 100px;
+        height: 100px;
+        background: rgba(255, 193, 7, 0.1);
+        border-radius: 50%;
+      }
+
+      .warnings-title {
+        color: #ff9800;
+        font-size: 1.6rem;
+        font-weight: 600;
+        margin-bottom: 25px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #ffcc80;
+        display: flex;
+        align-items: center;
+      }
+
+      .warnings-title i {
+        margin-right: 12px;
+        color: #ff9800;
+      }
+
+      .warning-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin-bottom: 0;
+      }
+
+      .warning-item {
+        padding: 15px;
+        border-left: 4px solid #ff9800;
+        background-color: white;
+        margin-bottom: 15px;
+        border-radius: 0 8px 8px 0;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .warning-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .warning-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .warning-item i {
+        color: #ff9800;
+        margin-right: 12px;
+      }
+
+      /* Conclusion Section */
+      .conclusion-section {
+        background-color: #e8f5e9;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: var(--box-shadow);
+        border: 1px solid #c8e6c9;
+        position: relative;
+        overflow: hidden;
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      .conclusion-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, var(--primary-color), transparent);
+      }
+
+      .conclusion-section p {
+        margin-bottom: 0;
+      }
+
+      /* Navigation Buttons */
+      .nav-buttons {
+        margin-top: 40px;
+      }
+
+      .btn-outline-success {
+        border-width: 2px;
+        font-weight: 600;
+        padding: 12px 25px;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+      }
+
+      .btn-success {
+        font-weight: 600;
+        padding: 12px 25px;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+      }
+
+      .btn-outline-success:hover,
+      .btn-success:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .animated {
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
         .container {
-            max-width: 900px;
-            margin: 50px auto;
-            background-color: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+          padding: 20px;
+          margin: 20px auto;
         }
+
         .result-header {
-            background-color: #28a745;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: center;
+          padding: 20px;
         }
-        .result-section {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 25px;
+
+        .result-section,
+        .recommendations-container,
+        .suitability-section,
+        .warnings-section,
+        .conclusion-section {
+          padding: 20px;
         }
-        .result-section-title {
-            color: #28a745;
-            border-bottom: 2px solid #28a745;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+
+        .crop-header,
+        .care-header {
+          font-size: 1.1rem;
         }
-        .parameter-item {
-            background-color: white;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .parameter-label {
-            font-weight: 600;
-            color: #555;
-        }
+
         .parameter-value {
-            font-size: 1.2em;
-            color: #333;
-            font-weight: bold;
+          font-size: 1.2em;
         }
-        .ai-recommendation {
-            background-color: #e8f5e9;
-            border-left: 6px solid #28a745;
-            padding: 25px;
-            margin-top: 30px;
-        }
-        .recommendation-title {
-            color: #28a745;
-            margin-bottom: 15px;
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="result-header">
-            <h1>Crop Recommendation Report</h1>
-        </div>
+      <div class="result-header animated">
+        <h1>Crop Recommendation Report</h1>
+        <p class="mb-0">Based on your soil and weather parameters</p>
+      </div>
 
-        <!-- Location Details -->
-        <div class="result-section">
-            <h3 class="result-section-title">Location Details</h3>
+      <!-- Location Details -->
+      <div class="result-section animated" style="animation-delay: 0.1s">
+        <h3 class="result-section-title">
+          <i class="fas fa-map-marker-alt"></i>Location Details
+        </h3>
+        <div class="parameter-item">
+          <div class="parameter-label">Location</div>
+          <div class="parameter-value">
+            {% if soil_data.Location %} {{ soil_data.Location }} {% else %} Not
+            Available {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Soil Parameters -->
+      <div class="result-section animated" style="animation-delay: 0.2s">
+        <h3 class="result-section-title">
+          <i class="fas fa-seedling"></i>Soil Parameters
+        </h3>
+        <div class="row">
+          {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
+          <div class="col-md-6 col-lg-3">
             <div class="parameter-item">
-                <div class="parameter-label">Location</div>
-                <div class="parameter-value">
-                    {% if soil_data.Location %}
-                        {{ soil_data.Location }}
-                    {% else %}
-                        Not Available
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Soil Parameters -->
-        <div class="result-section">
-            <h3 class="result-section-title">Soil Parameters</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
-                    <div class="parameter-item">
-                        <div class="parameter-label">{{ param }}</div>
-                        <div class="parameter-value">
-                            {{ soil_data[param] }}
-                            {% if param != 'pH' %} <small class="text-muted">mg/kg</small>{% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Weather Parameters -->
-        <div class="result-section">
-            <h3 class="result-section-title">Weather Parameters</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
-                    <div class="parameter-item">
-                        <div class="parameter-label">{{ param }}</div>
-                        <div class="parameter-value">
-                            {{ soil_data[param] }}
-                            {% if param == 'Rainfall' %}<small class="text-muted"> mm</small>
-                            {% elif param == 'Temperature' %}<small class="text-muted"> °C</small>
-                            {% elif param == 'Humidity' %}<small class="text-muted"> %</small>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- AI Crop Recommendation Section -->
-        <div class="ai-recommendation">
-            <h3 class="recommendation-title">Crop Recommendations</h3>
-            <ul class="recommendation-list">
-                {% if crop_recommendation %}
-                    {% for recommendation in crop_recommendation.split('•') %}
-                        {% if recommendation.strip() %}
-                            <li>{{ recommendation.strip() }}</li>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <li>No recommendations available.</li>
+              <div class="parameter-label">{{ param }}</div>
+              <div class="parameter-value">
+                {{ soil_data[param] }} {% if param != 'pH' %}
+                <small class="text-muted">mg/kg</small>
                 {% endif %}
-            </ul>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
+      </div>
 
-        <!-- Navigation Buttons -->
-        <div class="row mt-4">
-            <div class="col-md-6 d-grid">
-                <a href="/dashboard" class="btn btn-outline-success">Back to Home</a>
+      <!-- Weather Parameters -->
+      <div class="result-section animated" style="animation-delay: 0.3s">
+        <h3 class="result-section-title">
+          <i class="fas fa-cloud-sun"></i>Weather Parameters
+        </h3>
+        <div class="row">
+          {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
+          <div class="col-md-4">
+            <div class="parameter-item">
+              <div class="parameter-label">{{ param }}</div>
+              <div class="parameter-value">
+                {{ soil_data[param] }} {% if param == 'Rainfall' %}
+                <small class="text-muted">mm</small>
+                {% elif param == 'Temperature' %}
+                <small class="text-muted">°C</small>
+                {% elif param == 'Humidity' %}
+                <small class="text-muted">%</small>
+                {% endif %}
+              </div>
             </div>
-            <div class="col-md-6 d-grid">
-                <a href="/final_report/" class="btn btn-success">Download Report</a>
-            </div>
+          </div>
+          {% endfor %}
         </div>
+      </div>
+
+      <!-- AI Crop Recommendation Section -->
+      <div
+        class="recommendations-container animated"
+        style="animation-delay: 0.4s"
+      >
+        <h2 class="recommendations-title">
+          <i class="fas fa-leaf"></i>Crop Recommendations
+        </h2>
+
+        <!-- Introduction -->
+        {% if structured_recommendation.introduction %}
+        <div class="intro-section">
+          <p>{{ structured_recommendation.introduction }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Top Crops Section -->
+        {% if structured_recommendation.top_crops %}
+        <div class="top-crops-section">
+          <h3 class="section-title">
+            <i class="fas fa-award"></i>Top Recommended Crops
+          </h3>
+          <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for crop in structured_recommendation.top_crops %}
+            <div class="col">
+              <div class="crop-card h-100">
+                <div class="crop-header">
+                  <div class="crop-number">{{ crop.number }}</div>
+                  <div>{{ crop.name }}</div>
+                </div>
+                <div class="crop-content">
+                  <p class="crop-description">{{ crop.description }}</p>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Why Suitable Section -->
+        {% if structured_recommendation.suitability %}
+        <div class="suitability-section">
+          <h3 class="section-title">
+            <i class="fas fa-check-circle"></i>Why These Crops Are Suitable
+          </h3>
+          <ul class="suitability-list">
+            {% for item in structured_recommendation.suitability %}
+            <li class="suitability-item">
+              <i class="fas fa-check"></i>{{ item }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Care Instructions -->
+        {% if structured_recommendation.care_instructions %}
+        <div class="care-instructions-section">
+          <h3 class="section-title">
+            <i class="fas fa-hand-holding-heart"></i>Care Instructions
+          </h3>
+          <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for crop_name, instructions in
+            structured_recommendation.care_instructions.items() %}
+            <div class="col">
+              <div class="care-card h-100">
+                <div class="care-header">{{ crop_name }}</div>
+                <div class="care-content">
+                  <ul class="care-list">
+                    {% for instruction in instructions %}
+                    <li class="care-item">
+                      <i class="fas fa-leaf"></i>{{ instruction }}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Warnings Section -->
+        {% if structured_recommendation.warnings %}
+        <div class="warnings-section">
+          <h3 class="warnings-title">
+            <i class="fas fa-exclamation-triangle"></i>Warnings & Special
+            Considerations
+          </h3>
+          <ul class="warning-list">
+            {% for warning in structured_recommendation.warnings %}
+            <li class="warning-item">
+              <i class="fas fa-exclamation-circle"></i>{{ warning }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Conclusion -->
+        {% if structured_recommendation.conclusion %}
+        <div class="conclusion-section">
+          <p>
+            <i class="fas fa-info-circle me-2"></i>{{
+            structured_recommendation.conclusion }}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="row nav-buttons animated" style="animation-delay: 0.5s">
+        <div class="col-md-6 d-grid mb-3 mb-md-0">
+          <a href="/dashboard" class="btn btn-outline-success">
+            <i class="fas fa-home me-2"></i>Back to Home
+          </a>
+        </div>
+        <div class="col-md-6 d-grid">
+          <a href="/final_report/" class="btn btn-success">
+            <i class="fas fa-download me-2"></i>Download Report
+          </a>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add staggered animation
+        const animatedElements = document.querySelectorAll(".animated");
+
+        animatedElements.forEach((element, index) => {
+          element.style.animationDelay = `${0.1 * index}s`;
+        });
+
+        // Hover effects for cards
+        const cards = document.querySelectorAll(".crop-card, .care-card");
+        cards.forEach((card) => {
+          card.addEventListener("mouseenter", () => {
+            card.style.transform = "translateY(-8px)";
+            card.style.boxShadow = "0 15px 30px rgba(0, 0, 0, 0.15)";
+          });
+
+          card.addEventListener("mouseleave", () => {
+            card.style.transform = "translateY(0)";
+            card.style.boxShadow = "0 6px 18px rgba(0, 0, 0, 0.08)";
+          });
+        });
+
+        // Parameter item hover effect
+        const parameterItems = document.querySelectorAll(".parameter-item");
+        parameterItems.forEach((item) => {
+          item.addEventListener("mouseenter", () => {
+            item.style.transform = "translateY(-5px)";
+            item.style.boxShadow = "0 8px 15px rgba(0, 0, 0, 0.1)";
+          });
+
+          item.addEventListener("mouseleave", () => {
+            item.style.transform = "translateY(0)";
+            item.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.05)";
+          });
+        });
+
+        // Add scroll revealing animation
+        const revealOnScroll = function () {
+          const elements = document.querySelectorAll(
+            ".result-section, .recommendations-container, .crop-card, .care-card, .suitability-section, .warnings-section, .conclusion-section"
+          );
+
+          elements.forEach((element) => {
+            const elementTop = element.getBoundingClientRect().top;
+            const elementBottom = element.getBoundingClientRect().bottom;
+            const isVisible =
+              elementTop < window.innerHeight && elementBottom >= 0;
+
+            if (isVisible && !element.classList.contains("visible")) {
+              element.classList.add("visible");
+              element.style.opacity = "1";
+              element.style.transform = "translateY(0)";
+            }
+          });
+        };
+
+        // Initialize elements as hidden
+        const scrollElements = document.querySelectorAll(
+          ".result-section:not(.animated), .recommendations-container:not(.animated), .crop-card, .care-card, .suitability-section, .warnings-section, .conclusion-section"
+        );
+        scrollElements.forEach((element) => {
+          element.style.opacity = "0";
+          element.style.transform = "translateY(20px)";
+          element.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        });
+
+        // Call the function on load and scroll
+        window.addEventListener("load", revealOnScroll);
+        window.addEventListener("scroll", revealOnScroll);
+      });
+    </script>
+  </body>
 </html>
