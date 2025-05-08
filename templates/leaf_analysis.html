@@ -142,9 +142,24 @@
         .btn-home:hover {
             background-color: #218838;
         }
+        #alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 350px;
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
+    <!-- Alert Container for Flash Messages -->
+    <div id="alert-container"></div>
+
     <div class="container">
         <h1><i class="fas fa-leaf"></i> Smart Leaf Analysis</h1>
         
@@ -172,11 +187,12 @@
                 <div class="upload-area" id="drop-area">
                     <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
                     <p>Click to select or drag and drop a leaf image here</p>
-                    <p class="text-muted">Supported formats: JPG, PNG</p>
+                    <p class="text-muted">Supported formats: JPG, PNG (Max 5MB)</p>
                     <input type="file" id="file-upload" name="leaf_image" accept="image/jpeg, image/png" onchange="previewImage(this)">
                     <div class="image-preview-container">
                         <img id="preview-image" src="#" alt="Leaf image preview">
                     </div>
+                    <div class="file-info" id="file-info"></div>
                 </div>
             </div>
             
@@ -253,41 +269,100 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Toggle between upload options
+        // Function to show alert messages
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alertDiv);
+                bsAlert.close();
+            }, 5000);
+        }
+
+        // Toggle between upload options - FIXED THIS SECTION
         document.getElementById('upload-file-btn').addEventListener('click', function() {
             document.getElementById('file-upload-section').style.display = 'block';
             document.getElementById('camera-section').style.display = 'none';
-            document.getElementById('upload-file-btn').classList.add('active-option');
+            this.classList.add('active-option');
             document.getElementById('use-camera-btn').classList.remove('active-option');
         });
         
         document.getElementById('use-camera-btn').addEventListener('click', function() {
             document.getElementById('file-upload-section').style.display = 'none';
             document.getElementById('camera-section').style.display = 'block';
-            document.getElementById('use-camera-btn').classList.add('active-option');
+            this.classList.add('active-option');
             document.getElementById('upload-file-btn').classList.remove('active-option');
         });
 
         function previewImage(input) {
             const previewImg = document.getElementById('preview-image');
             const analyzeBtn = document.getElementById('analyze-btn');
+            const fileInfo = document.getElementById('file-info');
             
             if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showAlert('File size too large (max 5MB allowed)', 'danger');
+                    input.value = ''; // Clear the file input
+                    previewImg.style.display = 'none';
+                    analyzeBtn.disabled = true;
+                    fileInfo.innerHTML = '';
+                    return;
+                }
+                
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png'];
+                if (!validTypes.includes(file.type)) {
+                    showAlert('Invalid file type. Please upload a JPG or PNG image', 'danger');
+                    input.value = ''; // Clear the file input
+                    previewImg.style.display = 'none';
+                    analyzeBtn.disabled = true;
+                    fileInfo.innerHTML = '';
+                    return;
+                }
+                
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
                     previewImg.src = e.target.result;
                     previewImg.style.display = 'block';
                     analyzeBtn.disabled = false;
-                }
+                    
+                    // Show file info
+                    fileInfo.innerHTML = `
+                        <strong>${file.name}</strong><br>
+                        ${(file.size / 1024 / 1024).toFixed(2)} MB
+                    `;
+                };
                 
-                reader.readAsDataURL(input.files[0]);
+                reader.readAsDataURL(file);
             }
         }
 
         // Handle form submission with loading indicator
         document.getElementById('leaf-form').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('file-upload');
+            
+            // Validate file exists
+            if (!fileInput.files || fileInput.files.length === 0) {
+                e.preventDefault();
+                showAlert('Please select an image file first', 'danger');
+                return;
+            }
+            
+            // Show loading indicator
             document.getElementById('loading-indicator').style.display = 'block';
             document.getElementById('analyze-btn').disabled = true;
             
@@ -339,8 +414,10 @@
             const dt = e.dataTransfer;
             const files = dt.files;
             
-            document.getElementById('file-upload').files = files;
-            previewImage(document.getElementById('file-upload'));
+            if (files.length > 0) {
+                document.getElementById('file-upload').files = files;
+                previewImage(document.getElementById('file-upload'));
+            }
         }
         
         // Click on upload area to trigger file input
@@ -364,10 +441,10 @@
                     })
                     .catch(function(error) {
                         console.error("Could not access camera: ", error);
-                        alert("Could not access your camera. Please make sure you have a camera and have given permission to use it.");
+                        showAlert("Could not access your camera. Please check permissions.", 'danger');
                     });
             } else {
-                alert("Your browser does not support camera access.");
+                showAlert("Your browser does not support camera access.", 'warning');
             }
         });
         
@@ -385,7 +462,7 @@
             
             // Convert to file and set in file input
             canvas.toBlob(function(blob) {
-                const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+                const file = new File([blob], "leaf-capture.jpg", { type: "image/jpeg" });
                 
                 // Create a DataTransfer object to set the file
                 const dataTransfer = new DataTransfer();
@@ -398,6 +475,12 @@
                 previewImg.style.display = 'block';
                 document.getElementById('analyze-btn').disabled = false;
                 
+                // Show file info
+                document.getElementById('file-info').innerHTML = `
+                    <strong>leaf-capture.jpg</strong><br>
+                    ${(blob.size / 1024 / 1024).toFixed(2)} MB
+                `;
+                
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('camera-modal'));
                 modal.hide();
@@ -409,7 +492,18 @@
                 document.getElementById('use-camera-btn').classList.remove('active-option');
             }, 'image/jpeg', 0.9);
         });
+
+        // Handle flash messages from server (for Flask)
+        document.addEventListener('DOMContentLoaded', function() {
+            // This section would be populated by your Flask template engine
+            // {% with messages = get_flashed_messages(with_categories=true) %}
+            //     {% if messages %}
+            //         {% for category, message in messages %}
+            //             showAlert('{{ message }}', '{{ category }}');
+            //         {% endfor %}
+            //     {% endif %}
+            // {% endwith %}
+        });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

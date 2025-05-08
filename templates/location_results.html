@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('language', 'en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop Recommendation Results</title>
+    <title>{{ 'Crop Recommendation Results' | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -69,27 +69,27 @@
 <body>
     <div class="container">
         <div class="result-header">
-            <h1>Crop Recommendation Report</h1>
+            <h1>{{ 'Crop Recommendation Report' | translate }}</h1>
         </div>
 
         <div class="result-section">
-            <h3 class="result-section-title">Location Details</h3>
+            <h3 class="result-section-title">{{ 'Location Details' | translate }}</h3>
             <div class="parameter-item">
-                <div class="parameter-label">Location</div>
+                <div class="parameter-label">{{ 'Location' | translate }}</div>
                 <div class="parameter-value">{{ soil_data.Location }}</div>
             </div>
         </div>
 
         <div class="result-section">
-            <h3 class="result-section-title">Soil Parameters</h3>
+            <h3 class="result-section-title">{{ 'Soil Parameters' | translate }}</h3>
             <div class="row">
                 <div class="col-md-6">
                     {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
                     <div class="parameter-item">
-                        <div class="parameter-label">{{ param }}</div>
+                        <div class="parameter-label">{{ param | translate }}</div>
                         <div class="parameter-value">
                             {{ soil_data[param] }}
-                            {% if param != 'pH' %} <small class="text-muted">mg/kg</small>{% endif %}
+                            {% if param != 'pH' %} <small class="text-muted">{{ 'mg/kg' | translate }}</small>{% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -98,17 +98,17 @@
         </div>
 
         <div class="result-section">
-            <h3 class="result-section-title">Weather Parameters</h3>
+            <h3 class="result-section-title">{{ 'Weather Parameters' | translate }}</h3>
             <div class="row">
                 <div class="col-md-6">
                     {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
                     <div class="parameter-item">
-                        <div class="parameter-label">{{ param }}</div>
+                        <div class="parameter-label">{{ param | translate }}</div>
                         <div class="parameter-value">
                             {{ soil_data[param] }}
-                            {% if param == 'Rainfall' %}<small class="text-muted"> mm</small>
-                            {% elif param == 'Temperature' %}<small class="text-muted"> °C</small>
-                            {% elif param == 'Humidity' %}<small class="text-muted"> %</small>
+                            {% if param == 'Rainfall' %}<small class="text-muted"> {{ 'mm' | translate }}</small>
+                            {% elif param == 'Temperature' %}<small class="text-muted"> {{ '°C' | translate }}</small>
+                            {% elif param == 'Humidity' %}<small class="text-muted"> {{ '%' | translate }}</small>
                             {% endif %}
                         </div>
                     </div>
@@ -119,7 +119,7 @@
 
         <div class="container">
             <div class="ai-recommendation">
-                <h3 class="recommendation-title">Crop Recommendations</h3>
+                <h3 class="recommendation-title">{{ 'Crop Recommendations' | translate }}</h3>
                 <ul class="recommendation-list">
                     {% for recommendation in crop_recommendation.split('•') %}
                         {% if recommendation.strip() %}
@@ -132,10 +132,10 @@
 
         <div class="row mt-4">
             <div class="col-md-6 d-grid">
-                <a href="/dashboard" class="btn btn-outline-success">Back to Home</a>
+                <a href="/dashboard" class="btn btn-outline-success">{{ 'Back to Home' | translate }}</a>
             </div>
             <div class="col-md-6 d-grid">
-                <a href="/final_report/" class="btn btn-success">Download Report</a>
+                <a href="/final_report/" class="btn btn-success">{{ 'Download Report' | translate }}</a>
             </div>
         </div>
     </div>

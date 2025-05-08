@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('language', 'en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crop Analysis Input</title>
+    <title>{{ 'Crop Analysis Input' | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -53,57 +53,55 @@
 </head>
 <body>
     <div class="container">
-        <h1>Soil Analysis Input</h1>
+        <h1>{{ 'Soil Analysis Input' | translate }}</h1>
         <form action="/process_input" method="post">
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <label for="nitrogen" class="form-label">Nitrogen (N) Content:</label>
+                    <label for="nitrogen" class="form-label">{{ 'Nitrogen (N) Content:' | translate }}</label>
                     <input type="number" class="form-control" id="nitrogen" name="nitrogen" required min="0" max="140">
                 </div>
                 <div class="col-md-6">
-                    <label for="phosphorus" class="form-label">Phosphorus (P) Content:</label>
+                    <label for="phosphorus" class="form-label">{{ 'Phosphorus (P) Content:' | translate }}</label>
                     <input type="number" class="form-control" id="phosphorus" name="phosphorus" required min="0" max="145">
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <label for="potassium" class="form-label">Potassium (K) Content:</label>
+                    <label for="potassium" class="form-label">{{ 'Potassium (K) Content:' | translate }}</label>
                     <input type="number" class="form-control" id="potassium" name="potassium" required min="0" max="205">
                 </div>
                 <div class="col-md-6">
-                    <label for="ph" class="form-label">pH Value:</label>
+                    <label for="ph" class="form-label">{{ 'pH Value:' | translate }}</label>
                     <input type="number" class="form-control" id="ph" name="ph" required step="0.01" min="0" max="14">
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <label for="rainfall" class="form-label">Rainfall (mm):</label>
+                    <label for="rainfall" class="form-label">{{ 'Rainfall (mm):' | translate }}</label>
                     <input type="number" class="form-control" id="rainfall" name="rainfall" required min="0" max="300">
                 </div>
                 <div class="col-md-6">
-                    <label for="temperature" class="form-label">Temperature (°C):</label>
+                    <label for="temperature" class="form-label">{{ 'Temperature (°C):' | translate }}</label>
                     <input type="number" class="form-control" id="temperature" name="temperature" required step="0.01" min="0" max="50">
                 </div>
             </div>
 
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <label for="humidity" class="form-label">Humidity (%):</label>
+                    <label for="humidity" class="form-label">{{ 'Humidity (%):' | translate }}</label>
                     <input type="number" class="form-control" id="humidity" name="humidity" required min="0" max="100">
                 </div>
             </div>
 
             <div class="d-grid gap-2 col-6 mx-auto">
-                <button type="submit" class="btn btn-success">Analyze Soil</button>
+                <button type="submit" class="btn btn-success">{{ 'Analyze Soil' | translate }}</button>
             </div>
 
-             <!-- Back to Home Button -->
-        <div class="back-home">
-            <a href="/dashboard" class="btn-home">Back to Home</a>
-        </div>
-
+            <div class="back-home">
+                <a href="/dashboard" class="btn-home">{{ 'Back to Home' | translate }}</a>
+            </div>
         </form>
     </div>
 

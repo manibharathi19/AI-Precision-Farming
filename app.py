@@ -688,7 +688,7 @@ def process_leaf():
     
     if request.method == 'POST':
         if 'leaf_image' not in request.files:
-            flash('No file part', 'danger')
+            flash('No file selected', 'danger')
             return redirect(url_for('leaf_analysis'))
         
         file = request.files['leaf_image']
@@ -698,124 +698,175 @@ def process_leaf():
             return redirect(url_for('leaf_analysis'))
         
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            
-            # Process the image with Groq API
-            analysis_result = analyze_leaf_with_groq(file_path)
-            
-            # Extract results from the Groq analysis
-            leaf_color = analysis_result['leaf_color']
-            leaf_color_name = analysis_result['leaf_color_name']
-            health_status = analysis_result['health_status']
-            deficiencies = analysis_result['deficiencies']
-            
-            # Get fertilizer recommendations based on analysis
-            fertilizer_recommendation = get_fertilizer_recommendation(health_status)
-            
-            # Store leaf analysis in session
-            session['leaf_analysis'] = {
-                'leaf_color': leaf_color,
-                'leaf_color_name': leaf_color_name,
-                'health_status': health_status,
-                'deficiencies': deficiencies
-            }
-            
-            # Store fertilizer recommendation in session
-            session['fertilizer_recommendation'] = fertilizer_recommendation
-            
-            # Update database
-            conn = sqlite3.connect('farm_advisor.db')
-            cursor = conn.cursor()
-            cursor.execute('''
-            UPDATE reports 
-            SET leaf_analysis = ?, fertilizer_recommendation = ?
-            WHERE report_id = ?
-            ''', (
-                leaf_color_name + ": " + health_status,
-                fertilizer_recommendation['primary_fertilizer_name'],
-                session.get('report_id', 0)
-            ))
-            conn.commit()
-            conn.close()
-            
-            return render_template('fertilizer_recommendation.html',
-                                  leaf_color="#00FF00",
-                                  leaf_color_name=leaf_color_name,
-                                  health_status=health_status,
-                                  deficiencies=deficiencies,
-                                  **fertilizer_recommendation)
+            try:
+                # Secure filename and save
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                
+                # First validate it's actually a leaf image
+                if not is_leaf_image(file_path):
+                    os.remove(file_path)  # Delete non-leaf image
+                    flash('The uploaded image does not appear to be a plant leaf', 'danger')
+                    return redirect(url_for('leaf_analysis'))
+                
+                # Process with Groq API
+                analysis_result = analyze_leaf_with_groq(file_path)
+                
+                # Validate API response
+                if analysis_result['health_status'] == 'Analysis Failed':
+                    flash('Leaf analysis failed. Please try again with a clearer image.', 'warning')
+                    return redirect(url_for('leaf_analysis'))
+                
+                # Store results
+                session['leaf_analysis'] = {
+                    'leaf_color': analysis_result['leaf_color'],
+                    'leaf_color_name': analysis_result['leaf_color_name'],
+                    'health_status': analysis_result['health_status'],
+                    'deficiencies': analysis_result['deficiencies']
+                }
+                
+                # Get recommendations
+                fertilizer_recommendation = get_fertilizer_recommendation(
+                    analysis_result['health_status'])
+                
+                # Update database
+                conn = sqlite3.connect('farm_advisor.db')
+                cursor = conn.cursor()
+                cursor.execute('''
+                UPDATE reports 
+                SET leaf_analysis = ?, fertilizer_recommendation = ?
+                WHERE report_id = ?
+                ''', (
+                    f"{analysis_result['leaf_color_name']}: {analysis_result['health_status']}",
+                    fertilizer_recommendation['primary_fertilizer_name'],
+                    session.get('report_id', 0)
+                ))
+                conn.commit()
+                conn.close()
+                
+                return render_template('fertilizer_recommendation.html',
+                                    leaf_color=analysis_result['leaf_color'],
+                                    leaf_color_name=analysis_result['leaf_color_name'],
+                                    health_status=analysis_result['health_status'],
+                                    deficiencies=analysis_result['deficiencies'],
+                                    **fertilizer_recommendation)
+                
+            except Exception as e:
+                print(f"Error processing leaf: {str(e)}")
+                flash('An error occurred during analysis. Please try again.', 'danger')
+                return redirect(url_for('leaf_analysis'))
     
     return redirect(url_for('leaf_analysis'))
 
-def analyze_leaf_with_groq(image_path):
-    """
-    Analyze leaf image using Groq API for leaf color and health assessment
-    """
-    # Read and encode the image
-    with open(image_path, "rb") as image_file:
-        image_data = base64.b64encode(image_file.read()).decode('utf-8')
-    
-    # Extract dominant color from image
-    img = cv2.imread(image_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
-    # Resize image for faster processing
-    resized_img = cv2.resize(img, (100, 100))
-    pixels = resized_img.reshape(-1, 3)
-    
-    # Calculate average color (simplified approach)
-    avg_color = np.mean(pixels, axis=0)
-    hex_color = '#{:02x}{:02x}{:02x}'.format(int(avg_color[0]), int(avg_color[1]), int(avg_color[2]))
-    
-    # Prompt for Groq API
-    prompt = f"""
-    Analyze this leaf image for agricultural purposes. The dominant color detected is {hex_color}.
-    
-    Please provide the following information:
-    1. A refined leaf color name (e.g., "Healthy Green", "Yellowing", "Brown Spots", "Wilting Brown")
-    2. The most likely plant health status based on the color (e.g., "Healthy", "Nitrogen Deficiency", "Potassium Deficiency", "Disease Present")
-    3. A detailed description of any detected deficiencies or diseases
-    
-    Format your response as a JSON object with the following keys:
-    - leaf_color (the hex code)
-    - leaf_color_name (descriptive name)
-    - health_status (diagnosis)
-    - deficiencies (explanation)
-    """
-    
-    # Call Groq API
+def is_leaf_image(image_path):
+    """Validate if the uploaded image is actually a leaf"""
     try:
-        chat_completion = groq_client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {"role": "system", "content": "You are an agricultural expert specializing in leaf analysis."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
-        
-        # Parse the response
-        analysis_json = chat_completion.choices[0].message.content
-        import json
-        analysis_result = json.loads(analysis_json)
-        
-        # Ensure all required fields are present
-        if not all(k in analysis_result for k in ['leaf_color', 'leaf_color_name', 'health_status', 'deficiencies']):
-            raise ValueError("Incomplete response from API")
+        # Load image
+        img = cv2.imread(image_path)
+        if img is None:
+            return False
             
-        return analysis_result
+        # Convert to HSV color space
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        
+        # Define green color range (typical for leaves)
+        lower_green = np.array([35, 50, 50])
+        upper_green = np.array([85, 255, 255])
+        
+        # Threshold the HSV image
+        mask = cv2.inRange(hsv, lower_green, upper_green)
+        
+        # Calculate percentage of green pixels
+        green_pixels = cv2.countNonZero(mask)
+        total_pixels = img.shape[0] * img.shape[1]
+        green_percent = (green_pixels / total_pixels) * 100
+        
+        # Consider it a leaf if at least 15% green (adjust threshold as needed)
+        return green_percent > 15
         
     except Exception as e:
-        print(f"Error calling Groq API: {e}")
-        # Fallback to default values in case of API failure
+        print(f"Error validating leaf image: {str(e)}")
+        return False
+
+def analyze_leaf_with_groq(image_path):
+    """Analyze leaf image using Groq API with enhanced validation"""
+    try:
+        # Validate image first
+        img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError("Invalid image file")
+            
+        # Get dominant color
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        resized_img = cv2.resize(img, (100, 100))
+        pixels = resized_img.reshape(-1, 3)
+        avg_color = np.mean(pixels, axis=0)
+        hex_color = '#{:02x}{:02x}{:02x}'.format(*avg_color.astype(int))
+        
+        # Enhanced prompt with strict instructions
+        prompt = f"""
+        You are an agricultural expert analyzing plant leaf images. 
+        The uploaded image has a dominant color of {hex_color}.
+        
+        IMPORTANT INSTRUCTIONS:
+        1. If this doesn't appear to be a plant leaf, respond with health_status "Not a leaf"
+        2. For actual leaves, provide:
+           - leaf_color: The hex color code
+           - leaf_color_name: Descriptive name (e.g., "Yellowing", "Healthy Green")
+           - health_status: Diagnosis ("Healthy", "Nitrogen Deficiency", etc.)
+           - deficiencies: Detailed explanation
+        
+        Response MUST be valid JSON with exactly these keys.
+        """
+        
+        # Call Groq API with timeout
+        response = groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a precise agricultural analysis assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"},
+            timeout=30  # 30 second timeout
+        )
+        
+        # Parse and validate response
+        result = json.loads(response.choices[0].message.content)
+        
+        if not all(key in result for key in ['leaf_color', 'leaf_color_name', 'health_status', 'deficiencies']):
+            raise ValueError("Invalid API response format")
+            
+        if result['health_status'].lower() == "not a leaf":
+            return {
+                'leaf_color': hex_color,
+                'leaf_color_name': 'Invalid',
+                'health_status': 'Not a leaf',
+                'deficiencies': 'The uploaded image does not appear to be a plant leaf'
+            }
+            
+        return result
+        
+    except Exception as e:
+        print(f"Error in leaf analysis: {str(e)}")
         return {
-            'leaf_color': hex_color,
-            'leaf_color_name': 'Unknown',
+            'leaf_color': '#000000',
+            'leaf_color_name': 'Analysis Error',
             'health_status': 'Analysis Failed',
-            'deficiencies': f'Unable to analyze leaf image. Error: {str(e)}'
+            'deficiencies': f'Unable to analyze image: {str(e)}'
         }
+    
+# def analyze_leaf_with_groq(image_path):
+#     # First try specialized plant API
+#     try:
+#         plant_api_result = call_plant_disease_api(image_path)
+#         if plant_api_result['is_leaf']:
+#             return format_plant_api_result(plant_api_result)
+#     except Exception as e:
+#         print(f"Plant API error: {str(e)}")
+    
+#     # Fallback to Groq analysis
+#     return analyze_with_groq_fallback(image_path)
 
 def get_fertilizer_recommendation(health_status):
     """
