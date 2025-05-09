@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fertilizer Recommendation</title>
+    <title>{{ "Fertilizer Recommendation" | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -118,49 +118,57 @@
 <body>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="fas fa-flask"></i> Fertilizer Recommendation</h1>
+            <h1><i class="fas fa-flask"></i> {{ "Fertilizer Recommendation" | translate }}</h1>
             <div>
                 <button class="btn btn-print" onclick="window.print()">
-                    <i class="fas fa-print"></i> Print
+                    <i class="fas fa-print"></i> {{ "Print" | translate }}
                 </button>
                 <a href="/leaf_analysis" class="btn btn-back">
-                    <i class="fas fa-arrow-left"></i> Back
+                    <i class="fas fa-arrow-left"></i> {{ "Back" | translate }}
                 </a>
             </div>
         </div>
         
         <div class="analysis-section">
-            <h3><i class="fas fa-search"></i> Leaf Analysis Results</h3>
+            <h3><i class="fas fa-search"></i> {{ "Leaf Analysis Results" | translate }}</h3>
             
             <div class="row">
                 <div class="col-md-4 text-center">
-                    <img src="{{ url_for('static', filename='uploads/' + request.files['leaf_image'].filename) }}" alt="Uploaded leaf" class="leaf-image">
+                    <img src="{{ url_for('static', filename='uploads/' + request.files['leaf_image'].filename) }}" alt="{{ 'Uploaded leaf' | translate }}" class="leaf-image">
                 </div>
                 <div class="col-md-8">
                     <div class="leaf-info">
                         <div class="color-box" style="background-color: green;"></div>
 
                         <div>
-                            <p><strong>Detected Color:</strong> {{ leaf_color_name }}</p>
+                            <p><strong>{{ "Detected Color" | translate }}:</strong> {{ leaf_color_name }}</p>
                             <span class="health-status {% if health_status == 'Healthy' %}healthy{% elif health_status == 'Analysis Failed' %}unknown{% elif 'Disease' in health_status %}disease{% else %}deficient{% endif %}">
-                                {{ health_status }}
+                                {{ health_status | translate }}
                             </span>
-                            <p class="mt-2">{{ deficiencies }}</p>
+                            <p class="mt-2">{{ deficiencies | translate }}</p>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
         
-        <h3 class="mb-3"><i class="fas fa-seedling"></i> Fertilizer Recommendations</h3>
+        <h3 class="mb-3"><i class="fas fa-seedling"></i> {{ "Fertilizer Recommendations" | translate }}</h3>
         
         <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-recommended-tab" data-bs-toggle="pill" data-bs-target="#pills-recommended" type="button" role="tab">Recommended</button>
+                <button class="nav-link active" id="pills-recommended-tab" data-bs-toggle="pill" data-bs-target="#pills-recommended" type="button" role="tab">
+                    {{ "Recommended" | translate }}
+                </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-alternative-tab" data-bs-toggle="pill" data-bs-target="#pills-alternative" type="button" role="tab">Alternative</button>
+                <button class="nav-link" id="pills-alternative-tab" data-bs-toggle="pill" data-bs-target="#pills-alternative" type="button" role="tab">
+                    {{ "Alternative" | translate }}
+                </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-organic-tab" data-bs-toggle="pill" data-bs-target="#pills-organic" type="button" role="tab">Organic</button>
+                <button class="nav-link" id="pills-organic-tab" data-bs-toggle="pill" data-bs-target="#pills-organic" type="button" role="tab">
+                    {{ "Organic" | translate }}
+                </button>
             </li>
         </ul>
         
@@ -172,18 +180,18 @@
                         <i class="fertilizer-icon fas fa-flask"></i>
                         <div>
                             <h4>{{ primary_fertilizer_name }} <span class="npk-badge">NPK: {{ primary_fertilizer_npk }}</span></h4>
-                            <p class="text-muted">Recommended application rate: {{ primary_fertilizer_rate }}</p>
+                            <p class="text-muted">{{ "Recommended application rate" | translate }}: {{ primary_fertilizer_rate }}</p>
                         </div>
                     </div>
                     
-                    <p>{{ primary_fertilizer_description }}</p>
+                    <p>{{ primary_fertilizer_description | translate }}</p>
                     
                     <div class="alert alert-success mt-3">
-                        <i class="fas fa-info-circle"></i> This fertilizer is specifically formulated to address the issues detected in your leaf analysis.
+                        <i class="fas fa-info-circle"></i> {{ "This fertilizer is specifically formulated to address the issues detected in your leaf analysis." | translate }}
                     </div>
                     
                     <div class="recommendation-footer">
-                        <p>For best results, apply early in the morning or late evening. Ensure proper soil moisture before application.</p>
+                        <p>{{ "For best results, apply early in the morning or late evening. Ensure proper soil moisture before application." | translate }}</p>
                     </div>
                 </div>
             </div>
@@ -198,10 +206,10 @@
                         </div>
                     </div>
                     
-                    <p>{{ alt_fertilizer_description }}</p>
+                    <p>{{ alt_fertilizer_description | translate }}</p>
                     
                     <div class="alert alert-info mt-3">
-                        <i class="fas fa-info-circle"></i> This alternative can be used if the primary recommendation is not available.
+                        <i class="fas fa-info-circle"></i> {{ "This alternative can be used if the primary recommendation is not available." | translate }}
                     </div>
                 </div>
             </div>
@@ -216,26 +224,44 @@
                         </div>
                     </div>
                     
-                    <p>{{ organic_fertilizer_description }}</p>
+                    <p>{{ organic_fertilizer_description | translate }}</p>
                     
                     <div class="alert alert-success mt-3">
-                        <i class="fas fa-info-circle"></i> This organic option is environmentally friendly and suitable for organic farming.
+                        <i class="fas fa-info-circle"></i> {{ "This organic option is environmentally friendly and suitable for organic farming." | translate }}
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="alert alert-warning mt-4">
-            <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong> The recommendations provided are based on leaf color analysis. For optimal results, consider conducting a comprehensive soil test.
+            <strong><i class="fas fa-exclamation-triangle"></i> {{ "Important" | translate }}:</strong> {{ "The recommendations provided are based on leaf color analysis. For optimal results, consider conducting a comprehensive soil test." | translate }}
         </div>
         
         <div class="text-center mt-4">
             <a href="/leaf_analysis" class="btn btn-outline-success">
-                <i class="fas fa-camera"></i> Analyze Another Leaf
+                <i class="fas fa-camera"></i> {{ "Analyze Another Leaf" | translate }}
             </a>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Language switching functionality
+        function changeLanguage() {
+            const selectedLanguage = document.getElementById('languageSelect').value;
+            fetch(`/translate?lang=${selectedLanguage}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
 </body>
 </html>

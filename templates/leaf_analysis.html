@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Leaf Analysis - Fertilizer Recommendation</title>
+    <title>{{ "Smart Leaf Analysis - Fertilizer Recommendation" | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* [Previous CSS remains exactly the same] */
         body {
             background-color: #f8f9fa;
             font-family: 'Arial', sans-serif;
@@ -161,12 +162,12 @@
     <div id="alert-container"></div>
 
     <div class="container">
-        <h1><i class="fas fa-leaf"></i> Smart Leaf Analysis</h1>
+        <h1><i class="fas fa-leaf"></i> {{ "Smart Leaf Analysis" | translate }}</h1>
         
         <div class="row mb-4">
             <div class="col-12">
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Upload a clear image of a leaf to analyze its health and get personalized fertilizer recommendations.
+                    <i class="fas fa-info-circle"></i> {{ "Upload a clear image of a leaf to analyze its health and get personalized fertilizer recommendations." | translate }}
                 </div>
             </div>
         </div>
@@ -175,10 +176,10 @@
             <!-- Upload Options -->
             <div class="upload-options">
                 <div class="upload-option-btn active-option" id="upload-file-btn">
-                    <i class="fas fa-upload"></i> Upload File
+                    <i class="fas fa-upload"></i> {{ "Upload File" | translate }}
                 </div>
                 <div class="upload-option-btn" id="use-camera-btn">
-                    <i class="fas fa-camera"></i> Use Camera
+                    <i class="fas fa-camera"></i> {{ "Use Camera" | translate }}
                 </div>
             </div>
             
@@ -186,11 +187,11 @@
             <div id="file-upload-section">
                 <div class="upload-area" id="drop-area">
                     <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                    <p>Click to select or drag and drop a leaf image here</p>
-                    <p class="text-muted">Supported formats: JPG, PNG (Max 5MB)</p>
+                    <p>{{ "Click to select or drag and drop a leaf image here" | translate }}</p>
+                    <p class="text-muted">{{ "Supported formats: JPG, PNG (Max 5MB)" | translate }}</p>
                     <input type="file" id="file-upload" name="leaf_image" accept="image/jpeg, image/png" onchange="previewImage(this)">
                     <div class="image-preview-container">
-                        <img id="preview-image" src="#" alt="Leaf image preview">
+                        <img id="preview-image" src="#" alt="{{ 'Leaf image preview' | translate }}">
                     </div>
                     <div class="file-info" id="file-info"></div>
                 </div>
@@ -200,27 +201,27 @@
             <div id="camera-section" style="display: none;">
                 <div class="upload-area">
                     <div class="upload-icon"><i class="fas fa-camera"></i></div>
-                    <p>Click the button below to capture a leaf image</p>
+                    <p>{{ "Click the button below to capture a leaf image" | translate }}</p>
                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#camera-modal">
-                        <i class="fas fa-camera"></i> Open Camera
+                        <i class="fas fa-camera"></i> {{ "Open Camera" | translate }}
                     </button>
                 </div>
             </div>
             
             <div class="text-center">
                 <button type="submit" class="btn btn-success" id="analyze-btn" disabled>
-                    <i class="fas fa-microscope"></i> Analyze Leaf
+                    <i class="fas fa-microscope"></i> {{ "Analyze Leaf" | translate }}
                 </button>
                 <div class="back-home">
-                    <a href="/dashboard" class="btn-home">Back to Home</a>
+                    <a href="/dashboard" class="btn-home">{{ "Back to Home" | translate }}</a>
                 </div>
             </div>
             
             <div class="loading" id="loading-indicator">
                 <div class="spinner-border" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">{{ "Loading" | translate }}...</span>
                 </div>
-                <p class="mt-2">Analyzing leaf image with AI...</p>
+                <p class="mt-2">{{ "Analyzing leaf image with AI" | translate }}...</p>
                 <div class="progress">
                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
                 </div>
@@ -230,20 +231,20 @@
         <div class="row mt-5">
             <div class="col-md-4">
                 <div class="feature-card">
-                    <h5><i class="feature-icon fas fa-tint"></i> Real-time Analysis</h5>
-                    <p>AI-powered analysis of leaf color and condition</p>
+                    <h5><i class="feature-icon fas fa-tint"></i> {{ "Real-time Analysis" | translate }}</h5>
+                    <p>{{ "AI-powered analysis of leaf color and condition" | translate }}</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="feature-card">
-                    <h5><i class="feature-icon fas fa-flask"></i> Custom Recommendations</h5>
-                    <p>Personalized fertilizer suggestions</p>
+                    <h5><i class="feature-icon fas fa-flask"></i> {{ "Custom Recommendations" | translate }}</h5>
+                    <p>{{ "Personalized fertilizer suggestions" | translate }}</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="feature-card">
-                    <h5><i class="feature-icon fas fa-seedling"></i> Improved Yields</h5>
-                    <p>Optimize plant health and crop production</p>
+                    <h5><i class="feature-icon fas fa-seedling"></i> {{ "Improved Yields" | translate }}</h5>
+                    <p>{{ "Optimize plant health and crop production" | translate }}</p>
                 </div>
             </div>
         </div>
@@ -254,16 +255,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="cameraModalLabel">Take a Leaf Photo</h5>
+                    <h5 class="modal-title" id="cameraModalLabel">{{ "Take a Leaf Photo" | translate }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <video id="camera-feed" autoplay></video>
-                    <button id="capture-btn" class="btn btn-success"><i class="fas fa-camera"></i> Capture Photo</button>
+                    <button id="capture-btn" class="btn btn-success"><i class="fas fa-camera"></i> {{ "Capture Photo" | translate }}</button>
                     <canvas id="canvas" style="display:none;"></canvas>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ "Close" | translate }}</button>
                 </div>
             </div>
         </div>
@@ -271,25 +272,24 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Function to show alert messages
+        // Function to show alert messages - updated with translations
         function showAlert(message, type) {
             const alertContainer = document.getElementById('alert-container');
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
             alertDiv.innerHTML = `
                 ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ 'Close' | translate }}"></button>
             `;
             alertContainer.appendChild(alertDiv);
             
-            // Auto-dismiss after 5 seconds
             setTimeout(() => {
                 const bsAlert = new bootstrap.Alert(alertDiv);
                 bsAlert.close();
             }, 5000);
         }
 
-        // Toggle between upload options - FIXED THIS SECTION
+        // Toggle between upload options
         document.getElementById('upload-file-btn').addEventListener('click', function() {
             document.getElementById('file-upload-section').style.display = 'block';
             document.getElementById('camera-section').style.display = 'none';
@@ -312,21 +312,19 @@
             if (input.files && input.files[0]) {
                 const file = input.files[0];
                 
-                // Validate file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
-                    showAlert('File size too large (max 5MB allowed)', 'danger');
-                    input.value = ''; // Clear the file input
+                    showAlert("{{ 'File size too large (max 5MB allowed)' | translate }}", 'danger');
+                    input.value = '';
                     previewImg.style.display = 'none';
                     analyzeBtn.disabled = true;
                     fileInfo.innerHTML = '';
                     return;
                 }
                 
-                // Validate file type
                 const validTypes = ['image/jpeg', 'image/png'];
                 if (!validTypes.includes(file.type)) {
-                    showAlert('Invalid file type. Please upload a JPG or PNG image', 'danger');
-                    input.value = ''; // Clear the file input
+                    showAlert("{{ 'Invalid file type. Please upload a JPG or PNG image' | translate }}", 'danger');
+                    input.value = '';
                     previewImg.style.display = 'none';
                     analyzeBtn.disabled = true;
                     fileInfo.innerHTML = '';
@@ -340,7 +338,6 @@
                     previewImg.style.display = 'block';
                     analyzeBtn.disabled = false;
                     
-                    // Show file info
                     fileInfo.innerHTML = `
                         <strong>${file.name}</strong><br>
                         ${(file.size / 1024 / 1024).toFixed(2)} MB
@@ -351,29 +348,26 @@
             }
         }
 
-        // Handle form submission with loading indicator
+        // Handle form submission
         document.getElementById('leaf-form').addEventListener('submit', function(e) {
             const fileInput = document.getElementById('file-upload');
             
-            // Validate file exists
             if (!fileInput.files || fileInput.files.length === 0) {
                 e.preventDefault();
-                showAlert('Please select an image file first', 'danger');
+                showAlert("{{ 'Please select an image file first' | translate }}", 'danger');
                 return;
             }
             
-            // Show loading indicator
             document.getElementById('loading-indicator').style.display = 'block';
             document.getElementById('analyze-btn').disabled = true;
             
-            // Fake progress bar animation
             let progress = 0;
             const progressBar = document.querySelector('.progress-bar');
             const progressInterval = setInterval(function() {
                 progress += Math.random() * 15;
                 if (progress > 90) {
                     clearInterval(progressInterval);
-                    progress = 90; // Stay at 90% until actual completion
+                    progress = 90;
                 }
                 progressBar.style.width = progress + '%';
                 progressBar.setAttribute('aria-valuenow', progress);

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Data - Farm Advisor</title>
+    <title>{{ "Weather Data - Farm Advisor" | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
@@ -150,31 +150,28 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">Farm Advisor</a>
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">{{ "Farm Advisor" | translate }}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">{{ "Dashboard" | translate }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('input_form') }}">New Analysis</a>
+                        <a class="nav-link" href="{{ url_for('input_form') }}">{{ "New Analysis" | translate }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('reports') }}">Reports</a>
+                        <a class="nav-link" href="{{ url_for('reports') }}">{{ "Reports" | translate }}</a>
                     </li>
-                    <!-- <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('weather_data') }}">Weather</a>
-                    </li> -->
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+                        <a class="nav-link" href="{{ url_for('profile') }}">{{ "Profile" | translate }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        <a class="nav-link" href="{{ url_for('logout') }}">{{ "Logout" | translate }}</a>
                     </li>
                 </ul>
             </div>
@@ -185,46 +182,46 @@
         <div class="weather-header">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h2><i class="bi bi-cloud-sun"></i> Weather Information</h2>
+                    <h2><i class="bi bi-cloud-sun"></i> {{ "Weather Information" | translate }}</h2>
                 </div>
                 <div class="col-md-6 text-end">
-                    <span class="small" id="last-updated">Last updated: {{ now().strftime('%Y-%m-%d %H:%M') }}</span>
+                    <span class="small" id="last-updated">{{ "Last updated" | translate }}: {{ now().strftime('%Y-%m-%d %H:%M') }}</span>
                 </div>
             </div>
         </div>
 
         <div id="geolocation-alert" class="alert-location" style="display: none;">
-            <i class="bi bi-geo-alt"></i> <span id="location-status-message">Detecting your location...</span>
+            <i class="bi bi-geo-alt"></i> <span id="location-status-message">{{ "Detecting your location" | translate }}...</span>
             <button id="allow-location" class="btn btn-sm btn-outline-info float-end" style="display: none;">
-                Allow Location Access
+                {{ "Allow Location Access" | translate }}
             </button>
         </div>
 
         <div class="location-selector mb-4">
             <div class="row">
                 <div class="col-md-4">
-                    <label for="location-type" class="form-label">Location Type</label>
+                    <label for="location-type" class="form-label">{{ "Location Type" | translate }}</label>
                     <select class="form-select" id="location-type">
-                        <option value="current">My Current Location</option>
-                        <option value="farm">My Farm (Default)</option>
-                        <option value="custom">Custom Location</option>
+                        <option value="current">{{ "My Current Location" | translate }}</option>
+                        <option value="farm">{{ "My Farm (Default)" | translate }}</option>
+                        <option value="custom">{{ "Custom Location" | translate }}</option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label for="custom-location" class="form-label">Search Location</label>
+                    <label for="custom-location" class="form-label">{{ "Search Location" | translate }}</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" id="custom-location" placeholder="City name or coordinates" disabled>
+                        <input type="text" class="form-control" id="custom-location" placeholder="{{ "City name or coordinates" | translate }}" disabled>
                         <button class="btn btn-outline-primary" type="button" id="search-location" disabled>
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <label for="date-range" class="form-label">Forecast Range</label>
+                    <label for="date-range" class="form-label">{{ "Forecast Range" | translate }}</label>
                     <select class="form-select" id="date-range">
-                        <option value="7" selected>7 Days Forecast</option>
-                        <option value="5">5 Days Forecast</option>
-                        <option value="3">3 Days Forecast</option>
+                        <option value="7" selected>{{ "7 Days Forecast" | translate }}</option>
+                        <option value="5">{{ "5 Days Forecast" | translate }}</option>
+                        <option value="3">{{ "3 Days Forecast" | translate }}</option>
                     </select>
                 </div>
             </div>
@@ -232,7 +229,7 @@
 
         <div id="loading-indicator">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">{{ "Loading" | translate }}...</span>
             </div>
         </div>
 
@@ -243,30 +240,30 @@
         <div id="weather-content" style="display: none;">
             <div class="row">
                 <div class="col-md-7">
-                    <h4 class="section-title">Current Weather at <span id="location-name">Your Location</span></h4>
+                    <h4 class="section-title">{{ "Current Weather at" | translate }} <span id="location-name">{{ "Your Location" | translate }}</span></h4>
                     <div class="current-weather">
                         <div class="row">
                             <div class="col-md-6 text-center">
-                                <img id="current-weather-icon" src="" alt="Weather Icon" class="weather-icon-img">
+                                <img id="current-weather-icon" src="" alt="{{ "Weather Icon" | translate }}" class="weather-icon-img">
                                 <div class="temperature" id="current-temperature">--°C</div>
                                 <div class="weather-condition" id="current-condition">--</div>
                             </div>
                             <div class="col-md-6">
                                 <div class="weather-details">
                                     <div class="weather-detail-item d-flex justify-content-between">
-                                        <span class="weather-detail-label"><i class="bi bi-droplet-fill"></i> Humidity:</span>
+                                        <span class="weather-detail-label"><i class="bi bi-droplet-fill"></i> {{ "Humidity" | translate }}:</span>
                                         <span class="weather-detail-value" id="current-humidity">--%</span>
                                     </div>
                                     <div class="weather-detail-item d-flex justify-content-between">
-                                        <span class="weather-detail-label"><i class="bi bi-wind"></i> Wind Speed:</span>
+                                        <span class="weather-detail-label"><i class="bi bi-wind"></i> {{ "Wind Speed" | translate }}:</span>
                                         <span class="weather-detail-value" id="current-wind-speed">-- km/h</span>
                                     </div>
                                     <div class="weather-detail-item d-flex justify-content-between">
-                                        <span class="weather-detail-label"><i class="bi bi-water"></i> Precipitation:</span>
+                                        <span class="weather-detail-label"><i class="bi bi-water"></i> {{ "Precipitation" | translate }}:</span>
                                         <span class="weather-detail-value" id="current-precipitation">-- mm</span>
                                     </div>
                                     <div class="weather-detail-item d-flex justify-content-between">
-                                        <span class="weather-detail-label"><i class="bi bi-thermometer-half"></i> Feels Like:</span>
+                                        <span class="weather-detail-label"><i class="bi bi-thermometer-half"></i> {{ "Feels Like" | translate }}:</span>
                                         <span class="weather-detail-value" id="current-feels-like">--°C</span>
                                     </div>
                                 </div>
@@ -275,12 +272,12 @@
                     </div>
                 </div>
                 <div class="col-md-5">
-                    <h4 class="section-title">Farm Advisory</h4>
+                    <h4 class="section-title">{{ "Farm Advisory" | translate }}</h4>
                     <div id="alerts-container">
                         <!-- Weather alerts will be dynamically inserted here -->
                     </div>
                     <div class="advisory-card">
-                        <h5><i class="bi bi-calendar-check text-primary"></i> Recommended Activities</h5>
+                        <h5><i class="bi bi-calendar-check text-primary"></i> {{ "Recommended Activities" | translate }}</h5>
                         <ul class="mb-0" id="recommendations-list">
                             <!-- Recommendations will be dynamically inserted here -->
                         </ul>
@@ -290,7 +287,7 @@
 
             <div class="row mt-4">
                 <div class="col-md-12">
-                    <h4 class="section-title" id="forecast-title">7-Day Forecast</h4>
+                    <h4 class="section-title" id="forecast-title">{{ "7-Day Forecast" | translate }}</h4>
                 </div>
             </div>
             <div class="row" id="forecast-container">
@@ -299,7 +296,7 @@
 
             <div class="row mt-4">
                 <div class="col-md-12">
-                    <h4 class="section-title">Temperature Trend</h4>
+                    <h4 class="section-title">{{ "Temperature Trend" | translate }}</h4>
                     <div class="temperature-chart">
                         <canvas id="temperatureChart" width="400" height="200"></canvas>
                     </div>
@@ -308,52 +305,52 @@
 
             <div class="row mt-4">
                 <div class="col-md-6">
-                    <h4 class="section-title">Precipitation Forecast</h4>
+                    <h4 class="section-title">{{ "Precipitation Forecast" | translate }}</h4>
                     <div class="advisory-card">
-                        <h5>Weekly Rainfall Prediction</h5>
-                        <p>Expected precipitation for the next 7 days: <span id="total-precipitation">-- mm</span></p>
+                        <h5>{{ "Weekly Rainfall Prediction" | translate }}</h5>
+                        <p>{{ "Expected precipitation for the next 7 days" | translate }}: <span id="total-precipitation">-- mm</span></p>
                         <div class="progress mb-3">
                             <div class="progress-bar bg-info" id="precipitation-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0 mm</div>
                         </div>
-                        <p class="small text-muted">Average for this time of year: <span id="avg-precipitation">-- mm</span></p>
+                        <p class="small text-muted">{{ "Average for this time of year" | translate }}: <span id="avg-precipitation">-- mm</span></p>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <h4 class="section-title">Soil Moisture Prediction</h4>
+                    <h4 class="section-title">{{ "Soil Moisture Prediction" | translate }}</h4>
                     <div class="advisory-card">
-                        <h5>Soil Moisture Outlook</h5>
-                        <p>Based on forecasted rainfall and temperature:</p>
+                        <h5>{{ "Soil Moisture Outlook" | translate }}</h5>
+                        <p>{{ "Based on forecasted rainfall and temperature" | translate }}:</p>
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Very Dry</span>
-                            <span>Optimal</span>
-                            <span>Very Wet</span>
+                            <span>{{ "Very Dry" | translate }}</span>
+                            <span>{{ "Optimal" | translate }}</span>
+                            <span>{{ "Very Wet" | translate }}</span>
                         </div>
                         <div class="progress mb-3" style="height: 25px;">
                             <div class="progress-bar" id="moisture-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-                        <p class="small text-muted" id="moisture-prediction">Prediction will appear here</p>
+                        <p class="small text-muted" id="moisture-prediction">{{ "Prediction will appear here" | translate }}</p>
                     </div>
                 </div>
             </div>
 
             <div id="alertsDisplay" style="display: none;">
-                <h4 class="section-title">Your Active Alerts</h4>
+                <h4 class="section-title">{{ "Your Active Alerts" | translate }}</h4>
                 <div id="alertsContent"></div>
             </div>
 
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-2">
-                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        <i class="bi bi-arrow-left"></i> {{ "Back to Dashboard" | translate }}
                     </a>
                     <button class="btn btn-success me-2" id="download-report">
-                        <i class="bi bi-download"></i> Download Weather Report
+                        <i class="bi bi-download"></i> {{ "Download Weather Report" | translate }}
                     </button>
                     <button class="btn btn-primary" id="set-alerts">
-                        <i class="bi bi-bell"></i> Set Weather Alerts
+                        <i class="bi bi-bell"></i> {{ "Set Weather Alerts" | translate }}
                     </button>
                     <button class="btn btn-info" id="view-alerts">
-                        <i class="bi bi-eye"></i> View Saved Alerts
+                        <i class="bi bi-eye"></i> {{ "View Saved Alerts" | translate }}
                     </button>
                 </div>
             </div>
@@ -385,7 +382,7 @@
                         currentPosition.lat = position.coords.latitude;
                         currentPosition.lon = position.coords.longitude;
                         document.getElementById('location-status-message').innerHTML = 
-                            '<i class="bi bi-check-circle-fill text-success"></i> Using your current location';
+                            '<i class="bi bi-check-circle-fill text-success"></i> {{ "Using your current location" | translate }}';
                         
                         // Get weather data for detected location
                         fetchWeatherData(currentPosition.lat, currentPosition.lon);
@@ -396,7 +393,7 @@
                         
                         // Show error message and button to retry
                         document.getElementById('location-status-message').innerHTML = 
-                            '<i class="bi bi-x-circle-fill text-danger"></i> Location access denied. Using default location.';
+                            '<i class="bi bi-x-circle-fill text-danger"></i> {{ "Location access denied. Using default location." | translate }}';
                         document.getElementById('allow-location').style.display = 'block';
                         
                         // Get weather data for default location
@@ -407,7 +404,7 @@
                 // Browser doesn't support geolocation
                 document.getElementById('geolocation-alert').style.display = 'block';
                 document.getElementById('location-status-message').innerHTML = 
-                    '<i class="bi bi-x-circle-fill text-danger"></i> Geolocation is not supported by your browser. Using default location.';
+                    '<i class="bi bi-x-circle-fill text-danger"></i> {{ "Geolocation is not supported by your browser. Using default location." | translate }}';
                 
                 // Get weather data for default location
                 fetchWeatherData(currentPosition.lat, currentPosition.lon);
@@ -428,7 +425,7 @@
 
         function requestGeolocation() {
             if (navigator.geolocation) {
-                document.getElementById('location-status-message').innerHTML = 'Detecting your location...';
+                document.getElementById('location-status-message').innerHTML = '{{ "Detecting your location" | translate }}...';
                 document.getElementById('allow-location').style.display = 'none';
                 
                 navigator.geolocation.getCurrentPosition(
@@ -436,7 +433,7 @@
                         currentPosition.lat = position.coords.latitude;
                         currentPosition.lon = position.coords.longitude;
                         document.getElementById('location-status-message').innerHTML = 
-                            '<i class="bi bi-check-circle-fill text-success"></i> Using your current location';
+                            '<i class="bi bi-check-circle-fill text-success"></i> {{ "Using your current location" | translate }}';
                         
                         // Get weather data for detected location
                         fetchWeatherData(currentPosition.lat, currentPosition.lon);
@@ -444,7 +441,7 @@
                     function(error) {
                         console.error("Geolocation error:", error);
                         document.getElementById('location-status-message').innerHTML = 
-                            '<i class="bi bi-x-circle-fill text-danger"></i> Location access denied. Using default location.';
+                            '<i class="bi bi-x-circle-fill text-danger"></i> {{ "Location access denied. Using default location." | translate }}';
                         document.getElementById('allow-location').style.display = 'block';
                     }
                 );
@@ -477,7 +474,7 @@
             const locationInput = document.getElementById('custom-location').value.trim();
             
             if (!locationInput) {
-                showError('Please enter a location name or coordinates');
+                showError('{{ "Please enter a location name or coordinates" | translate }}');
                 return;
             }
             
@@ -485,7 +482,7 @@
             if (/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(locationInput)) {
                 const [lat, lon] = locationInput.split(',').map(coord => parseFloat(coord.trim()));
                 if (isNaN(lat) || isNaN(lon)) {
-                    showError('Invalid coordinates format. Please use latitude,longitude format (e.g., 40.7128,-74.0060)');
+                    showError('{{ "Invalid coordinates format. Please use latitude,longitude format (e.g., 40.7128,-74.0060)" | translate }}');
                     return;
                 }
                 fetchWeatherData(lat, lon);
@@ -494,7 +491,7 @@
                 fetch(`/api/geocode?q=${encodeURIComponent(locationInput)}`)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Location search failed');
+                            throw new Error('{{ "Location search failed" | translate }}');
                         }
                         return response.json();
                     })
@@ -503,12 +500,12 @@
                             const location = data[0];
                             fetchWeatherData(location.lat, location.lon);
                         } else {
-                            showError('Location not found. Please try a different name or coordinates.');
+                            showError('{{ "Location not found. Please try a different name or coordinates." | translate }}');
                         }
                     })
                     .catch(error => {
-                        console.error('Error searching location:', error);
-                        showError('Error searching for location. Please try again.');
+                        console.error('{{ "Error searching location" | translate }}:', error);
+                        showError('{{ "Error searching for location. Please try again." | translate }}');
                     });
             }
         }
@@ -522,7 +519,7 @@
                 .then(response => {
                     if (!response.ok) {
                         return response.json().then(err => {
-                            throw new Error(err.error || 'Failed to fetch weather data');
+                            throw new Error(err.error || '{{ "Failed to fetch weather data" | translate }}');
                         });
                     }
                     return response.json();
@@ -539,12 +536,12 @@
                     document.getElementById('weather-content').style.display = 'block';
                 })
                 .catch(error => {
-                    console.error('Error fetching weather data:', error);
+                    console.error('{{ "Error fetching weather data" | translate }}:', error);
                     document.getElementById('loading-indicator').style.display = 'none';
                     
                     let errorMessage = error.message;
                     if (errorMessage.includes('OpenWeatherMap API key')) {
-                        errorMessage = 'Weather service is currently unavailable. Please try again later.';
+                        errorMessage = '{{ "Weather service is currently unavailable. Please try again later." | translate }}';
                     }
                     
                     const errorContainer = document.getElementById('error-container');
@@ -570,7 +567,7 @@
 
         function updateWeatherUI(data) {
             // Update location name
-            document.getElementById('location-name').textContent = data.current.location_name || 'Your Location';
+            document.getElementById('location-name').textContent = data.current.location_name || '{{ "Your Location" | translate }}';
             
             // Update current weather
             document.getElementById('current-temperature').textContent = `${data.current.temperature}°C`;
@@ -603,8 +600,8 @@
                 const goodConditionsCard = document.createElement('div');
                 goodConditionsCard.className = 'advisory-card';
                 goodConditionsCard.innerHTML = `
-                    <h5><i class="bi bi-check-circle-fill text-success"></i> Good Farming Conditions</h5>
-                    <p>Weather conditions look favorable for farming activities today.</p>
+                    <h5><i class="bi bi-check-circle-fill text-success"></i> {{ "Good Farming Conditions" | translate }}</h5>
+                    <p>{{ "Weather conditions look favorable for farming activities today." | translate }}</p>
                 `;
                 alertsContainer.appendChild(goodConditionsCard);
             }
@@ -670,18 +667,18 @@
             let moistureLevel = 50; // Default
             if (totalPrecipitation > 30) {
                 moistureLevel = 80;
-                moisturePrediction.textContent = 'Soil likely to become waterlogged. Improve drainage.';
+                moisturePrediction.textContent = '{{ "Soil likely to become waterlogged. Improve drainage." | translate }}';
                 moistureBar.className = 'progress-bar bg-danger';
             } else if (totalPrecipitation > 15) {
                 moistureLevel = 65;
-                moisturePrediction.textContent = 'Good soil moisture expected. Monitor for optimal conditions.';
+                moisturePrediction.textContent = '{{ "Good soil moisture expected. Monitor for optimal conditions." | translate }}';
                 moistureBar.className = 'progress-bar bg-success';
             } else if (totalPrecipitation < 5 && data.current.temperature > 25) {
                 moistureLevel = 20;
-                moisturePrediction.textContent = 'Dry conditions expected. Plan irrigation accordingly.';
+                moisturePrediction.textContent = '{{ "Dry conditions expected. Plan irrigation accordingly." | translate }}';
                 moistureBar.className = 'progress-bar bg-warning';
             } else {
-                moisturePrediction.textContent = 'Normal soil moisture conditions expected.';
+                moisturePrediction.textContent = '{{ "Normal soil moisture conditions expected." | translate }}';
                 moistureBar.className = 'progress-bar bg-info';
             }
             
@@ -698,7 +695,7 @@
             const ctx = document.getElementById('temperatureChart').getContext('2d');
             
             // Prepare chart data
-            const labels = ['Today', ...data.forecast.map(day => day.day)];
+            const labels = ['{{ "Today" | translate }}', ...data.forecast.map(day => day.day)];
             const temps = [
                 data.current.temperature,
                 ...data.forecast.map(day => day.temperature)
@@ -724,7 +721,7 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Day Temperature (°C)',
+                            label: '{{ "Day Temperature" | translate }} (°C)',
                             data: temps,
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
@@ -732,7 +729,7 @@
                             fill: false
                         },
                         {
-                            label: 'Min Temperature (°C)',
+                            label: '{{ "Min Temperature" | translate }} (°C)',
                             data: minTemps,
                             borderColor: 'rgba(54, 162, 235, 1)',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
@@ -740,7 +737,7 @@
                             fill: false
                         },
                         {
-                            label: 'Max Temperature (°C)',
+                            label: '{{ "Max Temperature" | translate }} (°C)',
                             data: maxTemps,
                             borderColor: 'rgba(255, 206, 86, 1)',
                             backgroundColor : 'rgba(255, 206, 86, 0.2)',
@@ -754,7 +751,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: '7-Day Temperature Trend'
+                            text: '{{ "7-Day Temperature Trend" | translate }}'
                         },
                         tooltip: {
                             mode: 'index',
@@ -766,7 +763,7 @@
                             beginAtZero: false,
                             title: {
                                 display: true,
-                                text: 'Temperature (°C)'
+                                text: '{{ "Temperature" | translate }} (°C)'
                             }
                         }
                     }
@@ -776,7 +773,7 @@
 
         function handleDateRangeChange() {
             const days = document.getElementById('date-range').value;
-            document.getElementById('forecast-title').textContent = `${days}-Day Forecast`;
+            document.getElementById('forecast-title').textContent = `${days}-{{ "Day Forecast" | translate }}`;
             
             if (weatherData && weatherData.forecast) {
                 // Slice the forecast data to show only the selected number of days
@@ -807,7 +804,7 @@
 
         function downloadWeatherReport() {
             if (!weatherData) {
-                alert('No weather data available to download. Please wait for data to load.');
+                alert('{{ "No weather data available to download. Please wait for data to load." | translate }}');
                 return;
             }
 
@@ -835,16 +832,16 @@
             });
 
             // Generate CSV content
-            let csv = 'Category,Value\n';
-            csv += `Location,${reportData.location}\n`;
-            csv += `Temperature,${reportData.temperature}\n`;
-            csv += `Condition,${reportData.condition}\n`;
-            csv += `Humidity,${reportData.humidity}\n`;
-            csv += `Wind Speed,${reportData.windSpeed}\n`;
-            csv += `Precipitation,${reportData.precipitation}\n`;
-            csv += `Feels Like,${reportData.feelsLike}\n\n`;
+            let csv = '{{ "Category" | translate }},{{ "Value" | translate }}\n';
+            csv += `{{ "Location" | translate }},${reportData.location}\n`;
+            csv += `{{ "Temperature" | translate }},${reportData.temperature}\n`;
+            csv += `{{ "Condition" | translate }},${reportData.condition}\n`;
+            csv += `{{ "Humidity" | translate }},${reportData.humidity}\n`;
+            csv += `{{ "Wind Speed" | translate }},${reportData.windSpeed}\n`;
+            csv += `{{ "Precipitation" | translate }},${reportData.precipitation}\n`;
+            csv += `{{ "Feels Like" | translate }},${reportData.feelsLike}\n\n`;
             
-            csv += 'Forecast\nDay,Temperature,Condition,Precipitation\n';
+            csv += '{{ "Forecast" | translate }}\n{{ "Day" | translate }},{{ "Temperature" | translate }},{{ "Condition" | translate }},{{ "Precipitation" | translate }}\n';
             reportData.forecast.forEach(day => {
                 csv += `${day.day},${day.temperature},${day.condition},${day.precipitation}\n`;
             });
@@ -882,13 +879,12 @@
             modalContent.style.backgroundColor = 'white';
             modalContent.style.padding = '20px';
             modalContent.style.borderRadius = '8px';
-
             modalContent.style.width = '80%';
             modalContent.style.maxWidth = '500px';
             
             // Add title
             const title = document.createElement('h2');
-            title.textContent = 'Configure Weather Alerts';
+            title.textContent = '{{ "Configure Weather Alerts" | translate }}';
             modalContent.appendChild(title);
             
             // Create form
@@ -899,7 +895,7 @@
             const locationGroup = document.createElement('div');
             locationGroup.style.marginBottom = '15px';
             const locationLabel = document.createElement('label');
-            locationLabel.textContent = 'Location:';
+            locationLabel.textContent = '{{ "Location" | translate }}:';
             locationLabel.style.display = 'block';
             locationLabel.style.marginBottom = '5px';
             const locationInput = document.createElement('input');
@@ -916,16 +912,16 @@
             const conditionsGroup = document.createElement('div');
             conditionsGroup.style.marginBottom = '15px';
             const conditionsLabel = document.createElement('label');
-            conditionsLabel.textContent = 'Alert me when:';
+            conditionsLabel.textContent = '{{ "Alert me when" | translate }}:';
             conditionsLabel.style.display = 'block';
             conditionsLabel.style.marginBottom = '5px';
             
             const conditions = [
-                { id: 'tempHigh', label: 'Temperature above', unit: '°C' },
-                { id: 'tempLow', label: 'Temperature below', unit: '°C' },
-                { id: 'rain', label: 'Rain expected', unit: 'mm' },
-                { id: 'wind', label: 'Wind speed above', unit: 'km/h' },
-                { id: 'frost', label: 'Frost expected', unit: '' }
+                { id: 'tempHigh', label: '{{ "Temperature above" | translate }}', unit: '°C' },
+                { id: 'tempLow', label: '{{ "Temperature below" | translate }}', unit: '°C' },
+                { id: 'rain', label: '{{ "Rain expected" | translate }}', unit: 'mm' },
+                { id: 'wind', label: '{{ "Wind speed above" | translate }}', unit: 'km/h' },
+                { id: 'frost', label: '{{ "Frost expected" | translate }}', unit: '' }
             ];
             
             conditions.forEach(condition => {
@@ -973,11 +969,11 @@
             const notifyGroup = document.createElement('div');
             notifyGroup.style.marginBottom = '15px';
             const notifyLabel = document.createElement('label');
-            notifyLabel.textContent = 'Notify me via:';
+            notifyLabel.textContent = '{{ "Notify me via" | translate }}:';
             notifyLabel.style.display = 'block';
             notifyLabel.style.marginBottom = '5px';
             
-            const methods = ['Email', 'SMS', 'Browser Notification'];
+            const methods = ['{{ "Email" | translate }}', '{{ "SMS" | translate }}', '{{ "Browser Notification" | translate }}'];
             methods.forEach(method => {
                 const methodDiv = document.createElement('div');
                 
@@ -986,7 +982,7 @@
                 radio.id = `notify${method.replace(' ', '')}`;
                 radio.name = 'notificationMethod';
                 radio.value = method.toLowerCase();
-                if (method === 'Email') radio.checked = true;
+                if (method === '{{ "Email" | translate }}') radio.checked = true;
                 
                 const label = document.createElement('label');
                 label.htmlFor = `notify${method.replace(' ', '')}`;
@@ -1008,7 +1004,7 @@
             
             const saveButton = document.createElement('button');
             saveButton.type = 'submit';
-            saveButton.textContent = 'Save Alerts';
+            saveButton.textContent = '{{ "Save Alerts" | translate }}';
             saveButton.style.padding = '8px 16px';
             saveButton.style.backgroundColor = '#4CAF50';
             saveButton.style.color = 'white';
@@ -1018,7 +1014,7 @@
             
             const cancelButton = document.createElement('button');
             cancelButton.type = 'button';
-            cancelButton.textContent = 'Cancel';
+            cancelButton.textContent = '{{ "Cancel" | translate }}';
             cancelButton.style.padding = '8px 16px';
             cancelButton.style.backgroundColor = '#f44336';
             cancelButton.style.color = 'white';
@@ -1058,7 +1054,7 @@
                 document.body.removeChild(modal);
                 
                 // Show confirmation and update displayed alerts
-                alert('Weather alerts have been saved successfully!');
+                alert('{{ "Weather alerts have been saved successfully!" | translate }}');
                 displayAlertsOnPage();
             });
             
@@ -1093,28 +1089,28 @@
                 modalContent.style.maxWidth = '500px';
                 
                 const title = document.createElement('h2');
-                title.textContent = 'Your Saved Weather Alerts';
+                title.textContent = '{{ "Your Saved Weather Alerts" | translate }}';
                 modalContent.appendChild(title);
                 
                 const alertInfo = document.createElement('div');
                 alertInfo.innerHTML = `
-                    <p><strong>Location:</strong> ${alerts.location}</p>
-                    <p><strong>Notification Method:</strong> ${alerts.notificationMethod}</p>
-                    <h3>Alert Conditions:</h3>
+                    <p><strong>{{ "Location" | translate }}:</strong> ${alerts.location}</p>
+                    <p><strong>{{ "Notification Method" | translate }}:</strong> ${alerts.notificationMethod}</p>
+                    <h3>{{ "Alert Conditions" | translate }}:</h3>
                     <ul>
                         ${Object.entries(alerts.conditions).map(([key, value]) => 
-                            `<li>${formatConditionName(key)}: ${value === true ? 'Enabled' : value + getUnitForCondition(key)}</li>`
+                            `<li>${formatConditionName(key)}: ${value === true ? '{{ "Enabled" | translate }}' : value + getUnitForCondition(key)}</li>`
                         ).join('')}
                     </ul>
                 `;
                 
                 function formatConditionName(key) {
                     const names = {
-                        'tempHigh': 'Temperature above',
-                        'tempLow': 'Temperature below',
-                        'rain': 'Rain expected',
-                        'wind': 'Wind speed above',
-                        'frost': 'Frost expected'
+                        'tempHigh': '{{ "Temperature above" | translate }}',
+                        'tempLow': '{{ "Temperature below" | translate }}',
+                        'rain': '{{ "Rain expected" | translate }}',
+                        'wind': '{{ "Wind speed above" | translate }}',
+                        'frost': '{{ "Frost expected" | translate }}'
                     };
                     return names[key] || key;
                 }
@@ -1132,7 +1128,7 @@
                 modalContent.appendChild(alertInfo);
                 
                 const closeButton = document.createElement('button');
-                closeButton.textContent = 'Close';
+                closeButton.textContent = '{{ "Close" | translate }}';
                 closeButton.style.marginTop = '15px';
                 closeButton.style.padding = '8px 16px';
                 closeButton.style.backgroundColor = '#0d6efd';
@@ -1148,7 +1144,7 @@
                 modal.appendChild(modalContent);
                 document.body.appendChild(modal);
             } else {
-                alert('No weather alerts have been saved yet.');
+                alert('{{ "No weather alerts have been saved yet." | translate }}');
             }
         }
 
@@ -1163,12 +1159,12 @@
                 alertsDisplay.style.display = 'block';
                 alertsContent.innerHTML = `
                     <div class="alert alert-info">
-                        <h5><i class="bi bi-bell-fill"></i> Active Weather Alerts</h5>
-                        <p><strong>Location:</strong> ${alerts.location}</p>
-                        <p><strong>Notifications via:</strong> ${alerts.notificationMethod}</p>
+                        <h5><i class="bi bi-bell-fill"></i> {{ "Active Weather Alerts" | translate }}</h5>
+                        <p><strong>{{ "Location" | translate }}:</strong> ${alerts.location}</p>
+                        <p><strong>{{ "Notifications via" | translate }}:</strong> ${alerts.notificationMethod}</p>
                         <ul class="mb-0">
                             ${Object.entries(alerts.conditions).map(([key, value]) => 
-                                `<li>${formatConditionName(key)}: ${value === true ? 'Enabled' : value + getUnitForCondition(key)}</li>`
+                                `<li>${formatConditionName(key)}: ${value === true ? '{{ "Enabled" | translate }}' : value + getUnitForCondition(key)}</li>`
                             ).join('')}
                         </ul>
                     </div>
@@ -1176,11 +1172,11 @@
                 
                 function formatConditionName(key) {
                     const names = {
-                        'tempHigh': 'Temperature above',
-                        'tempLow': 'Temperature below',
-                        'rain': 'Rain expected',
-                        'wind': 'Wind speed above',
-                        'frost': 'Frost expected'
+                        'tempHigh': '{{ "Temperature above" | translate }}',
+                        'tempLow': '{{ "Temperature below" | translate }}',
+                        'rain': '{{ "Rain expected" | translate }}',
+                        'wind': '{{ "Wind speed above" | translate }}',
+                        'frost': '{{ "Frost expected" | translate }}'
                     };
                     return names[key] || key;
                 }
@@ -1203,8 +1199,7 @@
         window.addEventListener('DOMContentLoaded', function() {
             displayAlertsOnPage();
         });
+
     </script>
-</body>
+</body> 
 </html>
-            
-            

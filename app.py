@@ -68,13 +68,13 @@ cache = Cache(app, config={
 })
 
 # Configure Groq client
-groq_client = Groq(api_key="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")
+groq_client = Groq(api_key="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")
 GROQ_MODEL = "llama3-70b-8192"  # or another appropriate model
 
 load_dotenv()
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
-GROQ_API_KEY="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"
+GROQ_API_KEY="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"
 
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 if not OPENWEATHERMAP_API_KEY:
