@@ -5,90 +5,317 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ 'Crop Recommendation System' | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #81c784;
+            --accent-color: #ffb74d;
+            --light-bg: #f5f5f5;
+            --dark-text: #263238;
+            --light-text: #f5f5f5;
+        }
+        
         body {
-            background-color: #f8f9fa;
-            font-family: 'Arial', sans-serif;
+            background-color: var(--light-bg);
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-text);
+            background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), 
+                              url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
         }
+        
         .container {
-            max-width: 800px;
-            margin-top: 50px;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 50px;
+            max-width: 1000px;
+            margin-top: 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 60px;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+        
         h1, h2 {
-            color: #28a745;
+            color: var(--primary-color);
             margin-bottom: 30px;
             text-align: center;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
         }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+        
         .form-label {
             font-weight: 500;
+            color: var(--dark-text);
         }
-        .btn-success {
-            background-color: #28a745;
+        
+        .btn-primary {
+            background-color: var(--primary-color);
             border: none;
-            padding: 10px 25px;
+            padding: 12px 30px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .input-group {
-            margin-bottom: 20px;
+        
+        .btn-primary:hover {
+            background-color: #1b5e20;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
         }
+        
+        .btn-outline-primary {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            border-width: 2px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
         .option-card {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
+            border: none;
+            border-radius: 12px;
+            padding: 30px;
             margin-bottom: 20px;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background-color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
         }
+        
         .option-card:hover {
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
         }
+        
+        .option-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(46, 125, 50, 0.05), rgba(129, 199, 132, 0.05));
+            z-index: 0;
+        }
+        
         .option-header {
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #28a745;
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            position: relative;
+            z-index: 1;
         }
+        
+        .option-card p {
+            margin-bottom: 25px;
+            color: #555;
+            position: relative;
+            z-index: 1;
+            flex-grow: 1;
+        }
+        
+        .option-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
         .back-home {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 40px;
         }
+        
         .btn-home {
-            background-color: #28a745;
+            background-color: var(--primary-color);
             color: white;
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        
         .btn-home:hover {
-            background-color: #218838;
+            background-color: #1b5e20;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-home i {
+            margin-right: 8px;
+        }
+        
+        .feature-highlights {
+            background-color: rgba(129, 199, 132, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 40px 0;
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .feature-highlights h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .feature-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .feature-list li {
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .feature-list li::before {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+        }
+        
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .language-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .language-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin-top: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .option-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="language-selector">
+            <button class="language-btn btn-sm">
+                <i class="fas fa-globe me-1"></i> {{ 'Language' | translate }}
+            </button>
+        </div>
+        
         <h1>{{ 'Crop Recommendation System' | translate }}</h1>
+        <p class="text-center mb-4 text-muted">{{ 'Get personalized crop suggestions based on your soil and location data' | translate }}</p>
+        
+        <div class="feature-highlights">
+            <h3 class="text-center">{{ 'Why Use Our System?' | translate }}</h3>
+            <ul class="feature-list">
+                <li>{{ 'Increase your crop yield with data-driven recommendations' | translate }}</li>
+                <li>{{ 'Save time and resources by choosing the right crops' | translate }}</li>
+                <li>{{ 'Adapt to your local soil and climate conditions' | translate }}</li>
+                <li>{{ 'Sustainable farming practices recommendations' | translate }}</li>
+            </ul>
+        </div>
+        
+        <h2>{{ 'Get Started' | translate }}</h2>
         
         <div class="row mb-4">
             <div class="col-md-6">
-                <div class="option-card" onclick="location.href='/input_form'">
-                    <div class="option-header">{{ 'Option 1: I know my soil parameters' | translate }}</div>
-                    <p>{{ 'If you have already tested your soil and know the nitrogen, phosphorus, potassium levels, pH, and other parameters.' | translate }}</p>
-                    <div class="d-grid gap-2">
-                        <a href="/manual_soil" class="btn btn-outline-success">{{ 'Enter Soil Parameters' | translate }}</a>
+                <div class="option-card">
+                    <div class="option-icon">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <div class="option-header">{{ 'I know my soil parameters' | translate }}</div>
+                    <p>{{ 'If you have soil test results with nitrogen, phosphorus, potassium levels, pH, and other parameters.' | translate }}</p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="/manual_soil" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i> {{ 'Enter Soil Parameters' | translate }}
+                        </a>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="option-card" onclick="location.href='#location-form'">
-                    <div class="option-header">{{ 'Option 2: I don\'t know my soil parameters' | translate }}</div>
-                    <p>{{ 'Enter your location (PIN code or city name) and we\'ll fetch the soil and weather data for you.' | translate }}</p>
-                    <div class="d-grid gap-2">
-                        <a href="location-form" class="btn btn-outline-success">{{ 'Use My Location' | translate }}</a>
+                <div class="option-card">
+                    <div class="option-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="option-header">{{ 'I don\'t know my soil parameters' | translate }}</div>
+                    <p>{{ 'We\'ll estimate soil and weather data based on your location (PIN code or city name).' | translate }}</p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="/location-form" class="btn btn-primary">
+                            <i class="fas fa-location-arrow me-2"></i> {{ 'Use My Location' | translate }}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -96,10 +323,41 @@
 
         <!-- Back to Home Button -->
         <div class="back-home">
-            <a href="/dashboard" class="btn-home">{{ 'Back to Home' | translate }}</a>
+            <a href="/dashboard" class="btn-home">
+                <i class="fas fa-arrow-left me-2"></i> {{ 'Back to Home' | translate }}
+            </a>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple animation for cards on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.option-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 * index);
+            });
+
+            // Make entire card clickable (optional)
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on a button or link inside the card
+                    if (!e.target.closest('a') && !e.target.closest('button')) {
+                        const link = this.querySelector('a.btn-primary');
+                        if (link) {
+                            window.location.href = link.href;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

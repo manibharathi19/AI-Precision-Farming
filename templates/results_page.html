@@ -10,595 +10,308 @@
     />
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
     />
     <style>
       :root {
-        --primary-color: #28a745;
-        --primary-dark: #1e7e34;
-        --secondary-color: #4caf50;
-        --accent-color: #ffc107;
-        --light-bg: #f4f6f9;
-        --text-dark: #333;
-        --text-medium: #555;
-        --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        --hover-transform: translateY(-5px);
+        --primary-green: #28a745;
+        --dark-green: #218838;
+        --light-green: #d4edda;
+        --warning-yellow: #ffc107;
+        --danger-red: #dc3545;
+        --info-blue: #17a2b8;
+        --light-gray: #f8f9fa;
+        --dark-gray: #343a40;
       }
 
       body {
-        background-color: var(--light-bg);
-        font-family: "Segoe UI", Arial, sans-serif;
-        color: var(--text-dark);
-        line-height: 1.6;
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #212529;
       }
 
-      .container {
-        max-width: 1100px;
-        margin: 40px auto;
+      .report-container {
         background-color: white;
-        padding: 30px;
         border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        margin-top: 30px;
+        margin-bottom: 30px;
       }
 
-      .result-header {
+      .report-header {
         background: linear-gradient(
           135deg,
-          var(--primary-color),
-          var(--primary-dark)
+          var(--primary-green),
+          var(--dark-green)
         );
         color: white;
         padding: 30px;
-        border-radius: 12px;
-        margin-bottom: 35px;
-        text-align: center;
-        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        border-radius: 10px;
+        margin-bottom: 30px;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 10px 20px rgba(40, 167, 69, 0.2);
       }
 
-      .result-header::before {
+      .report-header::before {
         content: "";
         position: absolute;
-        top: -20px;
-        right: -20px;
-        width: 150px;
-        height: 150px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        z-index: 0;
-      }
-
-      .result-header::after {
-        content: "";
-        position: absolute;
-        bottom: -40px;
-        left: -40px;
+        top: -50px;
+        right: -50px;
         width: 200px;
         height: 200px;
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 50%;
-        z-index: 0;
       }
 
-      .result-header h1 {
-        position: relative;
-        z-index: 1;
+      .report-header h2 {
         font-weight: 700;
-        margin-bottom: 15px;
-        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-      }
-
-      .result-header p {
         position: relative;
         z-index: 1;
-        font-size: 1.1rem;
+      }
+
+      .report-header p {
         opacity: 0.9;
+        position: relative;
+        z-index: 1;
       }
 
-      .result-section {
-        background-color: #f8f9fa;
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 35px;
-        box-shadow: var(--box-shadow);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-      }
-
-      .result-section:hover {
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      }
-
-      .result-section-title {
-        color: var(--primary-color);
-        border-bottom: 2px solid var(--primary-color);
-        padding-bottom: 15px;
-        margin-bottom: 25px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-      }
-
-      .result-section-title i {
-        background-color: var(--primary-color);
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .parameter-item {
+      .parameter-card {
         background-color: white;
-        border-left: 4px solid var(--primary-color);
+        border-left: 4px solid var(--primary-green);
+        border-radius: 8px;
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        height: 100%;
       }
 
-      .parameter-item::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--primary-color), transparent);
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.3s ease;
-      }
-
-      .parameter-item:hover {
-        transform: var(--hover-transform);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-      }
-
-      .parameter-item:hover::after {
-        transform: scaleX(1);
+      .parameter-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       }
 
       .parameter-label {
         font-weight: 600;
-        color: var(--text-medium);
-        font-size: 1.1rem;
-        margin-bottom: 8px;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
       }
 
       .parameter-value {
-        font-size: 1.4em;
-        color: var(--text-dark);
-        font-weight: bold;
-      }
-
-      .parameter-value small {
-        font-size: 0.6em;
-        opacity: 0.7;
-        margin-left: 5px;
-      }
-
-      /* Recommendation Sections */
-      .recommendations-container {
-        background-color: #e8f5e9;
-        border-radius: 12px;
-        padding: 35px;
-        margin-bottom: 35px;
-        box-shadow: var(--box-shadow);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .recommendations-container::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 150px;
-        height: 150px;
-        background: linear-gradient(
-          135deg,
-          rgba(40, 167, 69, 0.1),
-          transparent
-        );
-        border-radius: 0 0 0 100%;
-      }
-
-      .recommendations-title {
-        color: var(--primary-color);
-        font-size: 1.9rem;
+        font-size: 1.5rem;
         font-weight: 700;
-        margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid var(--primary-color);
-        position: relative;
-        display: inline-block;
+        color: var(--dark-gray);
       }
 
-      .recommendations-title i {
-        background-color: var(--primary-color);
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .intro-section {
-        background-color: white;
-        padding: 25px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        border-left: 5px solid var(--primary-color);
-        font-size: 1.05rem;
-        line-height: 1.7;
-      }
-
-      /* Top Crops Section */
-      .top-crops-section {
-        margin-bottom: 35px;
-      }
-
-      .section-title {
-        color: var(--primary-color);
-        font-size: 1.6rem;
-        font-weight: 600;
-        margin-bottom: 25px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #c8e6c9;
-        display: flex;
-        align-items: center;
-      }
-
-      .section-title i {
-        margin-right: 12px;
-        color: var(--primary-color);
+      .parameter-unit {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-left: 5px;
       }
 
       .crop-card {
         background-color: white;
-        border-radius: 12px;
-        overflow: hidden;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         margin-bottom: 25px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
         transition: all 0.3s ease;
-        border: 1px solid #e0e0e0;
-        height: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.05);
       }
 
       .crop-card:hover {
-        transform: var(--hover-transform);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
       }
 
       .crop-header {
         background: linear-gradient(
           135deg,
-          var(--primary-color),
-          var(--primary-dark)
+          var(--primary-green),
+          var(--dark-green)
         );
         color: white;
-        padding: 18px 20px;
+        padding: 15px 20px;
         font-weight: 600;
-        font-size: 1.25rem;
-        display: flex;
-        align-items: center;
         position: relative;
-        overflow: hidden;
-      }
-
-      .crop-header::after {
-        content: "";
-        position: absolute;
-        top: -15px;
-        right: -15px;
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
       }
 
       .crop-number {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
         background-color: white;
-        color: var(--primary-color);
-        width: 35px;
-        height: 35px;
+        color: var(--primary-green);
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        margin-right: 15px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        position: relative;
-        z-index: 1;
+        text-align: center;
+        line-height: 30px;
+        font-weight: 700;
+        margin-right: 10px;
       }
 
-      .crop-content {
-        padding: 25px;
+      .crop-body {
+        padding: 20px;
+      }
+
+      .crop-name {
+        font-weight: 600;
+        color: var(--dark-gray);
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+      }
+
+      .crop-scientific {
+        font-style: italic;
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        display: block;
       }
 
       .crop-description {
-        color: var(--text-medium);
-        line-height: 1.7;
-        font-size: 1.05rem;
+        color: #495057;
+        line-height: 1.6;
       }
 
-      /* Why Suitable Section */
-      .suitability-section {
-        background-color: white;
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 35px;
-        box-shadow: var(--box-shadow);
+      .section-title {
+        color: var(--primary-green);
+        font-weight: 600;
+        margin: 30px 0 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
       }
 
-      .suitability-list {
-        list-style-type: none;
-        padding-left: 0;
-        margin-bottom: 0;
+      .section-title i {
+        margin-right: 10px;
+        font-size: 1.5rem;
       }
 
-      .suitability-item {
+      .benefit-item {
+        background-color: var(--light-green);
+        border-left: 4px solid var(--primary-green);
         padding: 15px;
-        border-left: 4px solid var(--primary-color);
-        background-color: #f5f5f5;
         margin-bottom: 15px;
         border-radius: 0 8px 8px 0;
         transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
       }
 
-      .suitability-item:last-child {
-        margin-bottom: 0;
-      }
-
-      .suitability-item::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: linear-gradient(90deg, var(--primary-color), transparent);
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.3s ease;
-      }
-
-      .suitability-item:hover {
+      .benefit-item:hover {
         transform: translateX(5px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
-
-      .suitability-item:hover::after {
-        transform: scaleX(1);
-      }
-
-      .suitability-item i {
-        color: var(--primary-color);
-        margin-right: 12px;
-        font-size: 1.1rem;
-      }
-
-      /* Care Instructions Section */
-      .care-instructions-section {
-        margin-bottom: 35px;
-      }
-
-      .care-card {
-        background-color: white;
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 25px;
-        box-shadow: var(--box-shadow);
-        border: 1px solid #e0e0e0;
-        height: 100%;
-        transition: all 0.3s ease;
-      }
-
-      .care-card:hover {
-        transform: var(--hover-transform);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-      }
-
-      .care-header {
-        background: linear-gradient(
-          135deg,
-          var(--secondary-color),
-          var(--primary-color)
-        );
-        color: white;
-        padding: 18px 20px;
-        font-weight: 600;
-        font-size: 1.25rem;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .care-header::after {
-        content: "";
-        position: absolute;
-        top: -15px;
-        right: -15px;
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-      }
-
-      .care-content {
-        padding: 25px;
-      }
-
-      .care-list {
-        list-style-type: none;
-        padding-left: 0;
-        margin-bottom: 0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
       }
 
       .care-item {
-        padding: 12px 15px;
-        border-left: 3px solid var(--secondary-color);
-        background-color: #f5f5f5;
-        margin-bottom: 12px;
+        background-color: white;
+        border-left: 4px solid var(--info-blue);
+        padding: 15px;
+        margin-bottom: 15px;
         border-radius: 0 8px 8px 0;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
         transition: all 0.3s ease;
-      }
-
-      .care-item:last-child {
-        margin-bottom: 0;
       }
 
       .care-item:hover {
         transform: translateX(5px);
-        background-color: #f0f0f0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
       }
 
-      .care-item i {
-        color: var(--secondary-color);
-        margin-right: 12px;
+      .warning-box {
+        background-color: #fff3cd;
+        border-left: 4px solid var(--warning-yellow);
+        padding: 20px;
+        border-radius: 0 8px 8px 0;
+        margin: 30px 0;
       }
 
-      /* Warnings Section */
-      .warnings-section {
-        background-color: #fff9c4;
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 35px;
-        box-shadow: var(--box-shadow);
-        border: 1px solid #fff59d;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .warnings-section::before {
-        content: "";
-        position: absolute;
-        top: -20px;
-        right: -20px;
-        width: 100px;
-        height: 100px;
-        background: rgba(255, 193, 7, 0.1);
-        border-radius: 50%;
-      }
-
-      .warnings-title {
-        color: #ff9800;
-        font-size: 1.6rem;
+      .warning-title {
+        color: #856404;
         font-weight: 600;
-        margin-bottom: 25px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #ffcc80;
+        margin-bottom: 15px;
         display: flex;
         align-items: center;
       }
 
-      .warnings-title i {
-        margin-right: 12px;
-        color: #ff9800;
-      }
-
-      .warning-list {
-        list-style-type: none;
-        padding-left: 0;
-        margin-bottom: 0;
+      .warning-title i {
+        margin-right: 10px;
       }
 
       .warning-item {
-        padding: 15px;
-        border-left: 4px solid #ff9800;
-        background-color: white;
-        margin-bottom: 15px;
-        border-radius: 0 8px 8px 0;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-      }
-
-      .warning-item:last-child {
-        margin-bottom: 0;
-      }
-
-      .warning-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      .warning-item i {
-        color: #ff9800;
-        margin-right: 12px;
-      }
-
-      /* Conclusion Section */
-      .conclusion-section {
-        background-color: #e8f5e9;
-        border-radius: 12px;
-        padding: 30px;
-        margin-bottom: 35px;
-        box-shadow: var(--box-shadow);
-        border: 1px solid #c8e6c9;
+        margin-bottom: 10px;
         position: relative;
-        overflow: hidden;
-        font-size: 1.05rem;
-        line-height: 1.7;
+        padding-left: 25px;
       }
 
-      .conclusion-section::before {
-        content: "";
+      .warning-item:before {
+        content: "⚠️";
         position: absolute;
-        top: 0;
         left: 0;
-        width: 100%;
-        height: 5px;
-        background: linear-gradient(90deg, var(--primary-color), transparent);
       }
 
-      .conclusion-section p {
-        margin-bottom: 0;
+      .conclusion-box {
+        background-color: #e2f3e8;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 30px;
+        border-left: 4px solid var(--primary-green);
       }
 
-      /* Navigation Buttons */
-      .nav-buttons {
+      .action-buttons {
         margin-top: 40px;
       }
 
-      .btn-outline-success {
-        border-width: 2px;
+      .btn-download {
+        background-color: var(--primary-green);
+        border-color: var(--primary-green);
+        padding: 10px 25px;
         font-weight: 600;
-        padding: 12px 25px;
+        border-radius: 30px;
         transition: all 0.3s ease;
-        border-radius: 8px;
       }
 
-      .btn-success {
-        font-weight: 600;
-        padding: 12px 25px;
-        transition: all 0.3s ease;
-        border-radius: 8px;
-      }
-
-      .btn-outline-success:hover,
-      .btn-success:hover {
+      .btn-download:hover {
+        background-color: var(--dark-green);
+        border-color: var(--dark-green);
         transform: translateY(-3px);
         box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
       }
 
-      /* Animations */
-      @keyframes fadeInUp {
+      .btn-back {
+        border-color: var(--primary-green);
+        color: var(--primary-green);
+        padding: 10px 25px;
+        font-weight: 600;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-back:hover {
+        background-color: var(--primary-green);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+      }
+
+      @media (max-width: 768px) {
+        .report-container {
+          padding: 20px;
+        }
+
+        .report-header {
+          padding: 20px;
+        }
+
+        .parameter-value {
+          font-size: 1.2rem;
+        }
+      }
+
+      /* Animation */
+      @keyframes fadeIn {
         from {
           opacity: 0;
           transform: translateY(20px);
@@ -609,229 +322,270 @@
         }
       }
 
-      .animated {
-        animation: fadeInUp 0.6s ease-out;
+      .animate-in {
+        animation: fadeIn 0.6s ease-out forwards;
       }
 
-      /* Responsive adjustments */
-      @media (max-width: 768px) {
-        .container {
-          padding: 20px;
-          margin: 20px auto;
-        }
-
-        .result-header {
-          padding: 20px;
-        }
-
-        .result-section,
-        .recommendations-container,
-        .suitability-section,
-        .warnings-section,
-        .conclusion-section {
-          padding: 20px;
-        }
-
-        .crop-header,
-        .care-header {
-          font-size: 1.1rem;
-        }
-
-        .parameter-value {
-          font-size: 1.2em;
-        }
+      .delay-1 {
+        animation-delay: 0.1s;
+      }
+      .delay-2 {
+        animation-delay: 0.2s;
+      }
+      .delay-3 {
+        animation-delay: 0.3s;
+      }
+      .delay-4 {
+        animation-delay: 0.4s;
+      }
+      .delay-5 {
+        animation-delay: 0.5s;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="result-header animated">
-        <h1>Crop Recommendation Report</h1>
-        <p class="mb-0">Based on your soil and weather parameters</p>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+          <i class="bi bi-tree"></i> Farm Advisor
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('dashboard') }}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('input_form') }}">
+                <i class="bi bi-plus-circle"></i> New Analysis
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('weather_data') }}">
+                <i class="bi bi-cloud-sun"></i> Weather
+              </a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('profile') }}">
+                <i class="bi bi-person-circle"></i> Profile
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container report-container">
+      <div class="report-header animate-in">
+        <h2>
+          <i class="bi bi-file-earmark-text"></i> Crop Recommendation Report
+        </h2>
+        <p class="mb-0">Based on your soil and weather conditions</p>
       </div>
 
-      <!-- Location Details -->
-      <div class="result-section animated" style="animation-delay: 0.1s">
-        <h3 class="result-section-title">
-          <i class="fas fa-map-marker-alt"></i>Location Details
-        </h3>
-        <div class="parameter-item">
-          <div class="parameter-label">Location</div>
-          <div class="parameter-value">
-            {% if soil_data.Location %} {{ soil_data.Location }} {% else %} Not
-            Available {% endif %}
+      <!-- Location Information -->
+      <div class="row animate-in delay-1">
+        <div class="col-md-12">
+          <div class="parameter-card">
+            <div class="parameter-label">Location</div>
+            <div class="parameter-value">
+              {{ soil_data.Location if soil_data.Location else 'Not specified'
+              }}
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Soil Parameters -->
-      <div class="result-section animated" style="animation-delay: 0.2s">
-        <h3 class="result-section-title">
-          <i class="fas fa-seedling"></i>Soil Parameters
-        </h3>
-        <div class="row">
-          {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
-          <div class="col-md-6 col-lg-3">
-            <div class="parameter-item">
-              <div class="parameter-label">{{ param }}</div>
-              <div class="parameter-value">
-                {{ soil_data[param] }} {% if param != 'pH' %}
-                <small class="text-muted">mg/kg</small>
-                {% endif %}
-              </div>
+      <h3 class="section-title animate-in delay-1">
+        <i class="bi bi-moisture"></i> Soil Parameters
+      </h3>
+      <div class="row animate-in delay-1">
+        <div class="col-md-3 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">Nitrogen (N)</div>
+            <div class="parameter-value">
+              {{ soil_data.Nitrogen }} <span class="parameter-unit">mg/kg</span>
             </div>
           </div>
-          {% endfor %}
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">Phosphorus (P)</div>
+            <div class="parameter-value">
+              {{ soil_data.Phosphorus }}
+              <span class="parameter-unit">mg/kg</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">Potassium (K)</div>
+            <div class="parameter-value">
+              {{ soil_data.Potassium }}
+              <span class="parameter-unit">mg/kg</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">pH Level</div>
+            <div class="parameter-value">{{ soil_data.pH }}</div>
+          </div>
         </div>
       </div>
 
       <!-- Weather Parameters -->
-      <div class="result-section animated" style="animation-delay: 0.3s">
-        <h3 class="result-section-title">
-          <i class="fas fa-cloud-sun"></i>Weather Parameters
-        </h3>
-        <div class="row">
-          {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
-          <div class="col-md-4">
-            <div class="parameter-item">
-              <div class="parameter-label">{{ param }}</div>
-              <div class="parameter-value">
-                {{ soil_data[param] }} {% if param == 'Rainfall' %}
-                <small class="text-muted">mm</small>
-                {% elif param == 'Temperature' %}
-                <small class="text-muted">°C</small>
-                {% elif param == 'Humidity' %}
-                <small class="text-muted">%</small>
-                {% endif %}
-              </div>
+      <h3 class="section-title animate-in delay-2">
+        <i class="bi bi-cloud-sun"></i> Weather Parameters
+      </h3>
+      <div class="row animate-in delay-2">
+        <div class="col-md-4 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">Temperature</div>
+            <div class="parameter-value">
+              {{ soil_data.Temperature }} <span class="parameter-unit">°C</span>
             </div>
           </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">Rainfall</div>
+            <div class="parameter-value">
+              {{ soil_data.Rainfall }} <span class="parameter-unit">mm</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <div class="parameter-card">
+            <div class="parameter-label">Humidity</div>
+            <div class="parameter-value">
+              {{ soil_data.Humidity }} <span class="parameter-unit">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Crop Recommendations -->
+      <h3 class="section-title animate-in delay-3">
+        <i class="bi bi-award"></i> Recommended Crops
+      </h3>
+
+      {% if structured_recommendation.introduction %}
+      <div
+        class="alert alert-light animate-in delay-3"
+        style="border-left: 4px solid var(--primary-green)"
+      >
+        {{ structured_recommendation.introduction }}
+      </div>
+      {% endif %}
+
+      <div class="row animate-in delay-3">
+        {% for crop in structured_recommendation.top_crops %}
+        <div class="col-lg-4 col-md-6">
+          <div class="crop-card">
+            <div class="crop-header">
+              <span class="crop-number">{{ crop.number }}</span>
+              {{ crop.name.split('(')[0] }}
+            </div>
+            <div class="crop-body">
+              <div class="crop-scientific">
+                {{ crop.name.split('(')[1].rstrip(')') if '(' in crop.name else
+                '' }}
+              </div>
+              <div class="crop-description">{{ crop.description }}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Why Suitable Section -->
+      {% if structured_recommendation.suitability %}
+      <h3 class="section-title animate-in delay-4">
+        <i class="bi bi-check-circle"></i> Why These Crops Are Suitable
+      </h3>
+      <div class="animate-in delay-4">
+        {% for item in structured_recommendation.suitability %}
+        <div class="benefit-item">
+          <i class="bi bi-check2-circle"></i> {{ item }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Care Instructions -->
+      {% if structured_recommendation.care_instructions %}
+      <h3 class="section-title animate-in delay-4">
+        <i class="bi bi-info-circle"></i> Care Instructions
+      </h3>
+      <div class="animate-in delay-4">
+        {% for crop_name, instructions in
+        structured_recommendation.care_instructions.items() %}
+        <h5 style="color: var(--primary-green); margin-top: 20px">
+          {{ crop_name }}
+        </h5>
+        {% for instruction in instructions %}
+        <div class="care-item">
+          <i class="bi bi-arrow-right-circle"></i> {{ instruction }}
+        </div>
+        {% endfor %} {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Warnings -->
+      {% if structured_recommendation.warnings %}
+      <div class="warning-box animate-in delay-5">
+        <div class="warning-title">
+          <i class="bi bi-exclamation-triangle"></i> Warnings & Special
+          Considerations
+        </div>
+        <div>
+          {% for warning in structured_recommendation.warnings %}
+          <div class="warning-item">{{ warning }}</div>
           {% endfor %}
         </div>
       </div>
+      {% endif %}
 
-      <!-- AI Crop Recommendation Section -->
-      <div
-        class="recommendations-container animated"
-        style="animation-delay: 0.4s"
-      >
-        <h2 class="recommendations-title">
-          <i class="fas fa-leaf"></i>Crop Recommendations
-        </h2>
-
-        <!-- Introduction -->
-        {% if structured_recommendation.introduction %}
-        <div class="intro-section">
-          <p>{{ structured_recommendation.introduction }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Top Crops Section -->
-        {% if structured_recommendation.top_crops %}
-        <div class="top-crops-section">
-          <h3 class="section-title">
-            <i class="fas fa-award"></i>Top Recommended Crops
-          </h3>
-          <div class="row row-cols-1 row-cols-md-3 g-4">
-            {% for crop in structured_recommendation.top_crops %}
-            <div class="col">
-              <div class="crop-card h-100">
-                <div class="crop-header">
-                  <div class="crop-number">{{ crop.number }}</div>
-                  <div>{{ crop.name }}</div>
-                </div>
-                <div class="crop-content">
-                  <p class="crop-description">{{ crop.description }}</p>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Why Suitable Section -->
-        {% if structured_recommendation.suitability %}
-        <div class="suitability-section">
-          <h3 class="section-title">
-            <i class="fas fa-check-circle"></i>Why These Crops Are Suitable
-          </h3>
-          <ul class="suitability-list">
-            {% for item in structured_recommendation.suitability %}
-            <li class="suitability-item">
-              <i class="fas fa-check"></i>{{ item }}
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
-
-        <!-- Care Instructions -->
-        {% if structured_recommendation.care_instructions %}
-        <div class="care-instructions-section">
-          <h3 class="section-title">
-            <i class="fas fa-hand-holding-heart"></i>Care Instructions
-          </h3>
-          <div class="row row-cols-1 row-cols-md-3 g-4">
-            {% for crop_name, instructions in
-            structured_recommendation.care_instructions.items() %}
-            <div class="col">
-              <div class="care-card h-100">
-                <div class="care-header">{{ crop_name }}</div>
-                <div class="care-content">
-                  <ul class="care-list">
-                    {% for instruction in instructions %}
-                    <li class="care-item">
-                      <i class="fas fa-leaf"></i>{{ instruction }}
-                    </li>
-                    {% endfor %}
-                  </ul>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Warnings Section -->
-        {% if structured_recommendation.warnings %}
-        <div class="warnings-section">
-          <h3 class="warnings-title">
-            <i class="fas fa-exclamation-triangle"></i>Warnings & Special
-            Considerations
-          </h3>
-          <ul class="warning-list">
-            {% for warning in structured_recommendation.warnings %}
-            <li class="warning-item">
-              <i class="fas fa-exclamation-circle"></i>{{ warning }}
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
-
-        <!-- Conclusion -->
-        {% if structured_recommendation.conclusion %}
-        <div class="conclusion-section">
-          <p>
-            <i class="fas fa-info-circle me-2"></i>{{
-            structured_recommendation.conclusion }}
-          </p>
-        </div>
-        {% endif %}
+      <!-- Conclusion -->
+      {% if structured_recommendation.conclusion %}
+      <div class="conclusion-box animate-in delay-5">
+        <i class="bi bi-lightbulb"></i> {{ structured_recommendation.conclusion
+        }}
       </div>
+      {% endif %}
 
-      <!-- Navigation Buttons -->
-      <div class="row nav-buttons animated" style="animation-delay: 0.5s">
-        <div class="col-md-6 d-grid mb-3 mb-md-0">
-          <a href="/dashboard" class="btn btn-outline-success">
-            <i class="fas fa-home me-2"></i>{{ Back to Home | translate }}
+      <!-- Action Buttons -->
+      <div class="action-buttons animate-in delay-5">
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+          <a
+            href="{{ url_for('dashboard') }}"
+            class="btn btn-outline-success btn-back me-md-2"
+          >
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
           </a>
-        </div>
-        <div class="col-md-6 d-grid">
-          <a href="/final_report/" class="btn btn-success">
-            <i class="fas fa-download me-2"></i>{{ Download Report | translate }}
+          <a
+            href="{{ url_for('download_report', report_id=report_id) }}"
+            class="btn btn-success btn-download"
+          >
+            <i class="bi bi-download"></i> Download Report
           </a>
         </div>
       </div>
@@ -839,75 +593,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+      // Simple intersection observer for animations
       document.addEventListener("DOMContentLoaded", function () {
-        // Add staggered animation
-        const animatedElements = document.querySelectorAll(".animated");
+        const animatedElements = document.querySelectorAll(".animate-in");
 
-        animatedElements.forEach((element, index) => {
-          element.style.animationDelay = `${0.1 * index}s`;
-        });
-
-        // Hover effects for cards
-        const cards = document.querySelectorAll(".crop-card, .care-card");
-        cards.forEach((card) => {
-          card.addEventListener("mouseenter", () => {
-            card.style.transform = "translateY(-8px)";
-            card.style.boxShadow = "0 15px 30px rgba(0, 0, 0, 0.15)";
-          });
-
-          card.addEventListener("mouseleave", () => {
-            card.style.transform = "translateY(0)";
-            card.style.boxShadow = "0 6px 18px rgba(0, 0, 0, 0.08)";
-          });
-        });
-
-        // Parameter item hover effect
-        const parameterItems = document.querySelectorAll(".parameter-item");
-        parameterItems.forEach((item) => {
-          item.addEventListener("mouseenter", () => {
-            item.style.transform = "translateY(-5px)";
-            item.style.boxShadow = "0 8px 15px rgba(0, 0, 0, 0.1)";
-          });
-
-          item.addEventListener("mouseleave", () => {
-            item.style.transform = "translateY(0)";
-            item.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.05)";
-          });
-        });
-
-        // Add scroll revealing animation
-        const revealOnScroll = function () {
-          const elements = document.querySelectorAll(
-            ".result-section, .recommendations-container, .crop-card, .care-card, .suitability-section, .warnings-section, .conclusion-section"
-          );
-
-          elements.forEach((element) => {
-            const elementTop = element.getBoundingClientRect().top;
-            const elementBottom = element.getBoundingClientRect().bottom;
-            const isVisible =
-              elementTop < window.innerHeight && elementBottom >= 0;
-
-            if (isVisible && !element.classList.contains("visible")) {
-              element.classList.add("visible");
-              element.style.opacity = "1";
-              element.style.transform = "translateY(0)";
-            }
-          });
-        };
-
-        // Initialize elements as hidden
-        const scrollElements = document.querySelectorAll(
-          ".result-section:not(.animated), .recommendations-container:not(.animated), .crop-card, .care-card, .suitability-section, .warnings-section, .conclusion-section"
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.style.opacity = 1;
+                entry.target.style.transform = "translateY(0)";
+              }
+            });
+          },
+          { threshold: 0.1 }
         );
-        scrollElements.forEach((element) => {
-          element.style.opacity = "0";
-          element.style.transform = "translateY(20px)";
-          element.style.transition = "opacity 0.6s ease, transform 0.6s ease";
-        });
 
-        // Call the function on load and scroll
-        window.addEventListener("load", revealOnScroll);
-        window.addEventListener("scroll", revealOnScroll);
+        animatedElements.forEach((el) => {
+          el.style.opacity = 0;
+          el.style.transform = "translateY(20px)";
+          el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+          observer.observe(el);
+        });
       });
     </script>
   </body>

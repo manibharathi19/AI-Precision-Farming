@@ -3,108 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Crop Analysis Input' | translate }}</title>
+    <title>{{ 'Soil Analysis Input' | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Arial', sans-serif;
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #81c784;
+            --accent-color: #ffb74d;
+            --light-bg: #f5f5f5;
+            --dark-text: #263238;
+            --light-text: #f5f5f5;
         }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Poppins', sans-serif;
+            color: var(--dark-text);
+            background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), 
+                              url('https://images.unsplash.com/photo-1531492746076-161ca9b8f094?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        
         .container {
             max-width: 800px;
-            margin-top: 50px;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-top: 40px;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 60px;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+        
         h1 {
-            color: #28a745;
+            color: var(--primary-color);
             margin-bottom: 30px;
             text-align: center;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
         }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+        
         .form-label {
             font-weight: 500;
+            color: var(--dark-text);
+            margin-bottom: 8px;
         }
-        .btn-success {
-            background-color: #28a745;
+        
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(46, 125, 50, 0.25);
+        }
+        
+        .input-group-text {
+            background-color: var(--primary-color);
+            color: white;
             border: none;
-            padding: 10px 25px;
+            border-radius: 8px 0 0 8px !important;
         }
-        .input-group {
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary:hover {
+            background-color: #1b5e20;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .parameter-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
         }
+        
+        .parameter-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parameter-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+        
         .back-home {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 40px;
         }
+        
         .btn-home {
-            background-color: #28a745;
+            background-color: var(--primary-color);
             color: white;
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+        
         .btn-home:hover {
-            background-color: #218838;
+            background-color: #1b5e20;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-home i {
+            margin-right: 8px;
+        }
+        
+        .input-hint {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .language-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .language-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                margin-top: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .parameter-card {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="language-selector">
+            <button class="language-btn btn-sm">
+                <i class="fas fa-globe me-1"></i> {{ 'Language' | translate }}
+            </button>
+        </div>
+        
         <h1>{{ 'Soil Analysis Input' | translate }}</h1>
+        <p class="text-center mb-4 text-muted">{{ 'Enter your soil parameters to get crop recommendations' | translate }}</p>
+        
         <form action="/process_input" method="post">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label for="nitrogen" class="form-label">{{ 'Nitrogen (N) Content:' | translate }}</label>
-                    <input type="number" class="form-control" id="nitrogen" name="nitrogen" required min="0" max="140">
+            <!-- Nutrient Parameters -->
+            <div class="parameter-card">
+                <h5 class="mb-4"><i class="fas fa-seedling parameter-icon"></i> {{ 'Nutrient Parameters' | translate }}</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="nitrogen" class="form-label">{{ 'Nitrogen (N) Content (ppm):' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="nitrogen" name="nitrogen" required min="0" max="140">
+                            <span class="input-group-text">ppm</span>
+                        </div>
+                        <div class="input-hint">{{ 'Typical range: 0-140 ppm' | translate }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="phosphorus" class="form-label">{{ 'Phosphorus (P) Content (ppm):' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="phosphorus" name="phosphorus" required min="0" max="145">
+                            <span class="input-group-text">ppm</span>
+                        </div>
+                        <div class="input-hint">{{ 'Typical range: 0-145 ppm' | translate }}</div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="phosphorus" class="form-label">{{ 'Phosphorus (P) Content:' | translate }}</label>
-                    <input type="number" class="form-control" id="phosphorus" name="phosphorus" required min="0" max="145">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="potassium" class="form-label">{{ 'Potassium (K) Content (ppm):' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="potassium" name="potassium" required min="0" max="205">
+                            <span class="input-group-text">ppm</span>
+                        </div>
+                        <div class="input-hint">{{ 'Typical range: 0-205 ppm' | translate }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="ph" class="form-label">{{ 'pH Value:' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="ph" name="ph" required step="0.01" min="0" max="14">
+                            <span class="input-group-text">pH</span>
+                        </div>
+                        <div class="input-hint">{{ 'Scale: 0 (acidic) to 14 (alkaline)' | translate }}</div>
+                    </div>
                 </div>
             </div>
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label for="potassium" class="form-label">{{ 'Potassium (K) Content:' | translate }}</label>
-                    <input type="number" class="form-control" id="potassium" name="potassium" required min="0" max="205">
+            
+            <!-- Environmental Parameters -->
+            <div class="parameter-card">
+                <h5 class="mb-4"><i class="fas fa-cloud-sun parameter-icon"></i> {{ 'Environmental Parameters' | translate }}</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="rainfall" class="form-label">{{ 'Rainfall:' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="rainfall" name="rainfall" required min="0" max="300">
+                            <span class="input-group-text">mm</span>
+                        </div>
+                        <div class="input-hint">{{ 'Annual precipitation in millimeters' | translate }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="temperature" class="form-label">{{ 'Temperature:' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="temperature" name="temperature" required step="0.01" min="0" max="50">
+                            <span class="input-group-text">°C</span>
+                        </div>
+                        <div class="input-hint">{{ 'Average temperature in Celsius' | translate }}</div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="ph" class="form-label">{{ 'pH Value:' | translate }}</label>
-                    <input type="number" class="form-control" id="ph" name="ph" required step="0.01" min="0" max="14">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="humidity" class="form-label">{{ 'Humidity:' | translate }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="humidity" name="humidity" required min="0" max="100">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="input-hint">{{ 'Relative humidity percentage' | translate }}</div>
+                    </div>
                 </div>
             </div>
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label for="rainfall" class="form-label">{{ 'Rainfall (mm):' | translate }}</label>
-                    <input type="number" class="form-control" id="rainfall" name="rainfall" required min="0" max="300">
-                </div>
-                <div class="col-md-6">
-                    <label for="temperature" class="form-label">{{ 'Temperature (°C):' | translate }}</label>
-                    <input type="number" class="form-control" id="temperature" name="temperature" required step="0.01" min="0" max="50">
-                </div>
-            </div>
-
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <label for="humidity" class="form-label">{{ 'Humidity (%):' | translate }}</label>
-                    <input type="number" class="form-control" id="humidity" name="humidity" required min="0" max="100">
-                </div>
-            </div>
-
-            <div class="d-grid gap-2 col-6 mx-auto">
-                <button type="submit" class="btn btn-success">{{ 'Analyze Soil' | translate }}</button>
-            </div>
-
-            <div class="back-home">
-                <a href="/dashboard" class="btn-home">{{ 'Back to Home' | translate }}</a>
+            
+            <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-chart-line me-2"></i> {{ 'Analyze Soil' | translate }}
+                </button>
             </div>
         </form>
+        
+        <div class="back-home">
+            <a href="/dashboard" class="btn-home">
+                <i class="fas fa-arrow-left me-2"></i> {{ 'Back to Home' | translate }}
+            </a>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple animation for form elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach((input, index) => {
+                input.style.opacity = '0';
+                input.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    input.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    input.style.opacity = '1';
+                    input.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+        });
+    </script>
 </body>
 </html>

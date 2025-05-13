@@ -15,17 +15,28 @@ from groq import Groq
 import base64
 import cv2
 import io
+import re
 from PIL import Image
 from flask_cors import CORS
 from flask_caching import Cache
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from functools import lru_cache
-# from googletrans import Translator
+
 from deep_translator import GoogleTranslator
 import json
 import os
 from translation import register_translation_handlers
 from translation import test_translation_service
+import pandas as pd
+import numpy as np
+
+# import seaborn as sns
+# import matplotlib.pyplot as plt
+# from sklearn.model_selection import train_test_split
+# from sklearn.ensemble import RandomForestClassifier
+# from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+
 
 
 # Initialize Flask app (ONLY ONCE at the top)
@@ -68,13 +79,13 @@ cache = Cache(app, config={
 })
 
 # Configure Groq client
-groq_client = Groq(api_key="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")
+groq_client = Groq(api_key="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")
 GROQ_MODEL = "llama3-70b-8192"  # or another appropriate model
 
 load_dotenv()
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
-GROQ_API_KEY="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"
+GROQ_API_KEY="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"
 
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 if not OPENWEATHERMAP_API_KEY:
@@ -440,6 +451,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -450,12 +462,12 @@ def login():
 
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
-            session['username'] = user['username']  # Store username in session
+            session['username'] = user['username']
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password', 'error')
+            error = 'Invalid username or password'
 
-    return render_template('login.html')
+    return render_template('login.html', error=error)
 
 
 @app.route('/logout')
@@ -489,69 +501,6 @@ def input_form():
     return render_template('input_form.html')
 
 @app.route('/process_input', methods=['POST'])
-# def process_input():
-#     if 'user_id' not in session:
-#         return redirect(url_for('login'))
-
-#     if request.method == 'POST':
-#         # Get form data
-#         nitrogen = float(request.form['nitrogen'])
-#         phosphorus = float(request.form['phosphorus'])
-#         potassium = float(request.form['potassium'])
-#         ph = float(request.form['ph'])
-#         rainfall = float(request.form['rainfall'])
-#         temperature = float(request.form['temperature'])
-#         humidity = float(request.form['humidity'])
-
-#         # Store data in session
-#         soil_data = {
-#             'Nitrogen': nitrogen,
-#             'Phosphorus': phosphorus,
-#             'Potassium': potassium,
-#             'pH': ph,
-#             'Rainfall': rainfall,
-#             'Temperature': temperature,
-#             'Humidity': humidity
-#         }
-#         session['soil_data'] = soil_data
-
-#         # Get AI-based crop recommendation from Groq API
-#         crop_recommendation = get_groq_prediction(soil_data)
-
-#         # Store recommendation in session
-#         session['crop_recommendation'] = crop_recommendation
-#         print(crop_recommendation)
-
-#         # Save to SQLite database
-#         report_id = session.get('report_id', str(uuid.uuid4()))
-
-#         conn = sqlite3.connect('farm_advisor.db')
-#         cursor = conn.cursor()
-#         cursor.execute('''
-#         INSERT INTO reports 
-#         (user_id, report_id, crop_recommendation, soil_n, soil_p, soil_k, soil_ph, rainfall, temperature, humidity)
-#         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-#         ''', (
-#             session['user_id'],
-#             report_id,
-#             crop_recommendation,
-#             nitrogen,
-#             phosphorus,
-#             potassium,
-#             ph,
-#             rainfall,
-#             temperature,
-#             humidity
-#         ))
-#         conn.commit()
-#         conn.close()
-
-#         # Pass both crop_recommendation AND soil_data to the template
-#         return render_template('results_page.html', 
-#                               crop_recommendation=crop_recommendation,
-#                               soil_data=soil_data)  # Add this line
-
-#     return redirect(url_for('input_form'))
 def process_input():
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -624,7 +573,8 @@ def process_input():
 
 def parse_crop_recommendation(recommendation_text):
     """
-    Parse the crop recommendation text into a structured format that handles various recommendation formats
+    Robust parser that handles various crop recommendation text formats and extracts
+    structured data for use in templates.
     """
     # Create a structured format for the recommendations
     structured_data = {
@@ -636,120 +586,208 @@ def parse_crop_recommendation(recommendation_text):
         'conclusion': ''
     }
     
-    # Clean up the text - remove excessive spaces and normalize line breaks
-    clean_text = ' '.join(recommendation_text.replace('\n\n', '\n').split())
+    # Split by lines and remove empty lines
+    lines = [line.strip() for line in recommendation_text.split('\n') if line.strip()]
     
-    # Split by main sections using the ** markers
-    sections = {}
-    current_section = 'introduction'
+    # Process introduction (everything before "Top 3 Recommended Crops:")
+    intro_lines = []
+    i = 0
     
-    # First extract main sections
-    lines = recommendation_text.split('\n')
-    for i, line in enumerate(lines):
-        line = line.strip()
-        
-        # Skip empty lines
-        if not line:
-            continue
-            
-        # Check if this is a section header
-        if line.startswith('**') and line.endswith('**'):
-            current_section = line.strip('*').strip()
-            sections[current_section] = []
-        else:
-            # Add content to current section
-            if current_section in sections:
-                sections[current_section].append(line)
-            else:
-                # If no section is defined yet, it's part of introduction
-                if 'introduction' not in sections:
-                    sections['introduction'] = []
-                sections['introduction'].append(line)
+    # Look for the Top 3 Crops header
+    while i < len(lines) and "*Top 3 Recommended Crops:*" not in lines[i]:
+        intro_lines.append(lines[i])
+        i += 1
     
-    # Process the introduction
-    if 'introduction' in sections:
-        structured_data['introduction'] = ' '.join(sections['introduction'])
+    structured_data['introduction'] = ' '.join(intro_lines)
     
     # Process Top Recommended Crops section
-    if 'Top 3 Recommended Crops:' in sections:
-        crops_text = ' '.join(sections['Top 3 Recommended Crops:'])
-        # Extract numbered crops with descriptions
-        import re
-        crop_matches = re.findall(r'(\d+)\.\s+\*\*(.*?)\*\*:\s+(.*?)(?=\d+\.\s+\*\*|\Z)', crops_text + ' ', re.DOTALL)
+    if i < len(lines) and "*Top 3 Recommended Crops:*" in lines[i]:
+        i += 1  # Skip the section header
         
-        for match in crop_matches:
-            num, name, desc = match
-            structured_data['top_crops'].append({
-                'number': num,
-                'name': name.strip(),
-                'description': desc.strip()
-            })
-    
-    # If we didn't find numbered crops, try another approach
-    if not structured_data['top_crops'] and 'Top 3 Recommended Crops:' in sections:
-        lines = ' '.join(sections['Top 3 Recommended Crops:']).split('**')
-        for i in range(1, len(lines), 2):
-            if i+1 < len(lines) and ':' in lines[i]:
-                name, desc = lines[i].split(':', 1)
+        # Process each numbered crop
+        while i < len(lines) and lines[i].strip().startswith(('1.', '2.', '3.')):
+            line = lines[i].strip()
+            
+            # Handle crop entries with or without descriptions
+            if '**' in line:
+                parts = line.split('**')
+                number = parts[0].split('.')[0].strip()
+                name = parts[1].strip()
+                description = parts[2].strip() if len(parts) > 2 else ""
+                
+                # Clean up description (remove parentheses if they're part of the name)
+                if description.startswith('(') and ')' in description:
+                    description = description.split(')', 1)[1].strip()
+                
                 structured_data['top_crops'].append({
-                    'number': str(len(structured_data['top_crops']) + 1),
-                    'name': name.strip(),
-                    'description': desc.strip()
+                    'number': number,
+                    'name': name,
+                    'description': description
                 })
+            i += 1
     
-    # Process Why these crops are suitable section
-    if 'Why these crops are suitable:' in sections:
-        for line in sections['Why these crops are suitable:']:
-            if line.startswith('* '):
-                structured_data['suitability'].append(line[2:])
+    # Process "Why these crops are suitable" section
+    suitability_header_variations = ["*Why these crops are suitable:*", "Why these crops are suitable:"]
     
-    # Process Care Instructions section
-    care_section_name = None
-    for section_name in sections.keys():
-        if 'Care Instructions' in section_name:
-            care_section_name = section_name
+    found_suitability = False
+    for header in suitability_header_variations:
+        i_temp = i
+        while i_temp < len(lines) and header not in lines[i_temp]:
+            i_temp += 1
+        
+        if i_temp < len(lines) and header in lines[i_temp]:
+            i = i_temp
+            found_suitability = True
             break
     
-    if care_section_name:
+    if found_suitability:
+        i += 1  # Skip the section header
+        
+        # Collect bullet points
+        while i < len(lines) and lines[i].startswith('*'):
+            suitability_item = lines[i][1:].strip()
+            structured_data['suitability'].append(suitability_item)
+            i += 1
+    
+    # Process Basic Care Instructions section
+    care_header_variations = [
+        "*Basic Care Instructions for Recommended Crops:*", 
+        "*Basic Care Instructions:*", 
+        "Basic Care Instructions:"
+    ]
+    
+    found_care = False
+    for header in care_header_variations:
+        i_temp = i
+        while i_temp < len(lines) and header not in lines[i_temp]:
+            i_temp += 1
+        
+        if i_temp < len(lines) and header in lines[i_temp]:
+            i = i_temp
+            found_care = True
+            break
+    
+    if found_care:
+        i += 1  # Skip the section header
+        
+        # Handle "For all three crops:" format
+        if i < len(lines) and "For all" in lines[i]:
+            crop_group = "General Care"
+            structured_data['care_instructions'][crop_group] = []
+            i += 1
+            
+            # Collect bullet points for general care
+            while i < len(lines) and lines[i].strip().startswith('*'):
+                instruction = lines[i].strip()[1:].strip()
+                structured_data['care_instructions'][crop_group].append(instruction)
+                i += 1
+        
+        # Process care instructions with numbered crops
         current_crop = None
         
-        for line in sections[care_section_name]:
-            if line.startswith('1. **') or line.startswith('2. **') or line.startswith('3. **'):
-                # This is a new crop care instruction
-                parts = line.split('**', 2)
-                if len(parts) >= 2:
-                    current_crop = parts[1].strip(':')
-                    structured_data['care_instructions'][current_crop] = []
-            elif line.startswith('* ') and current_crop:
-                instruction = line[2:]
-                structured_data['care_instructions'][current_crop].append(instruction)
+        # Check if there's a Crop-Specific Care section
+        crop_specific_variations = ["*Crop-Specific Care:*", "Crop-Specific Care:"]
+        found_specific = False
+        
+        for header in crop_specific_variations:
+            i_temp = i
+            while i_temp < len(lines) and header not in lines[i_temp]:
+                i_temp += 1
+            
+            if i_temp < len(lines) and header in lines[i_temp]:
+                i = i_temp + 1  # Skip the section header
+                found_specific = True
+                break
+        
+        if found_specific:
+            # Process crop-specific bullet points
+            while i < len(lines) and (not lines[i].startswith("*") or "*Crop-Specific" in lines[i]):
+                line = lines[i].strip()
+                
+                if line.startswith('*'):
+                    # Handle format: "* Crop: instruction"
+                    parts = line[1:].strip().split(':', 1)
+                    if len(parts) > 1:
+                        crop_name = parts[0].strip()
+                        instruction = parts[1].strip()
+                        
+                        if crop_name not in structured_data['care_instructions']:
+                            structured_data['care_instructions'][crop_name] = []
+                        
+                        structured_data['care_instructions'][crop_name].append(instruction)
+                
+                i += 1
+        else:
+            # Try to process numbered crop instructions format
+            while i < len(lines) and (not lines[i].startswith("**") or "Care" in lines[i]):
+                line = lines[i].strip()
+                
+                # Identify crop headers (numbered entries)
+                if line.startswith(('1.', '2.', '3.')):
+                    if '**' in line:
+                        # Format: "1. *Crop Name:*"
+                        parts = line.split('**')
+                        if len(parts) > 1:
+                            current_crop = parts[1].strip().rstrip(':')
+                            structured_data['care_instructions'][current_crop] = []
+                    else:
+                        # Format: "1. Crop Name:"
+                        parts = line.split(':', 1)
+                        if len(parts) > 0:
+                            crop_part = parts[0].split('.', 1)
+                            if len(crop_part) > 1:
+                                current_crop = crop_part[1].strip()
+                                structured_data['care_instructions'][current_crop] = []
+                # Add instructions for the current crop
+                elif line.startswith('*') and current_crop:
+                    instruction = line[1:].strip()
+                    structured_data['care_instructions'][current_crop].append(instruction)
+                
+                i += 1
     
     # Process Warnings section
-    warnings_section_name = None
-    for section_name in sections.keys():
-        if 'Warnings' in section_name or 'Special Considerations' in section_name:
-            warnings_section_name = section_name
+    warning_header_variations = [
+        "*Warnings or Special Considerations:*", 
+        "*Warnings and Special Considerations:*",
+        "Warnings and Special Considerations:",
+        "*Warnings:*"
+    ]
+    
+    found_warnings = False
+    for header in warning_header_variations:
+        i_temp = i
+        while i_temp < len(lines) and header not in lines[i_temp]:
+            i_temp += 1
+        
+        if i_temp < len(lines) and header in lines[i_temp]:
+            i = i_temp
+            found_warnings = True
             break
     
-    if warnings_section_name:
-        for line in sections[warnings_section_name]:
-            if line.startswith('* '):
-                structured_data['warnings'].append(line[2:])
+    if found_warnings:
+        i += 1  # Skip the section header
+        
+        # Collect warnings until the end or until we hit a conclusion section
+        while i < len(lines) and "Overall" not in lines[i]:
+            line = lines[i].strip()
+            
+            if line.startswith('*'):
+                warning = line[1:].strip()
+                structured_data['warnings'].append(warning)
+            
+            i += 1
     
     # Process conclusion (if any)
-    conclusion_found = False
-    conclusion_lines = []
-    
-    for i, line in enumerate(lines):
-        if 'following these recommendations' in line.lower() or 'by following these' in line.lower():
-            conclusion_found = True
+    if i < len(lines):
+        conclusion_lines = []
+        while i < len(lines):
+            conclusion_lines.append(lines[i].strip())
+            i += 1
         
-        if conclusion_found:
-            conclusion_lines.append(line)
-    
-    if conclusion_lines:
-        structured_data['conclusion'] = ' '.join(conclusion_lines)
-    
+        if conclusion_lines:
+            structured_data['conclusion'] = ' '.join(conclusion_lines)
+    print(structured_data)
+
     return structured_data
 
 @app.route('/process_location', methods=['POST'])
@@ -786,9 +824,16 @@ def process_location():
         session['soil_data'] = combined_data
         
         # Get AI recommendation
-        crop_recommendation = get_groq_prediction(combined_data)
-        # print(crop_recommendation)
-        session['crop_recommendation'] = crop_recommendation
+        raw_crop_recommendation = get_groq_prediction(combined_data)
+        
+        # Parse the recommendation
+        parsed_recommendation = parse_crop_recommendation_location(raw_crop_recommendation)
+        
+        # No longer need to format the recommendation here as it's done in the template
+        
+        # Store recommendations in session
+        session['raw_crop_recommendation'] = raw_crop_recommendation
+        session['parsed_recommendation'] = parsed_recommendation
         
         # Save to database
         report_id = str(uuid.uuid4())
@@ -807,7 +852,7 @@ def process_location():
                 ''', (
                     session['user_id'],
                     report_id,
-                    crop_recommendation,
+                    raw_crop_recommendation,
                     combined_data['Nitrogen'],
                     combined_data['Phosphorus'],
                     combined_data['Potassium'],
@@ -826,7 +871,7 @@ def process_location():
                 ''', (
                     session['user_id'],
                     report_id,
-                    crop_recommendation,
+                    raw_crop_recommendation,
                     combined_data['Nitrogen'],
                     combined_data['Phosphorus'],
                     combined_data['Potassium'],
@@ -842,12 +887,411 @@ def process_location():
             print(f"Database error: {str(e)}")
             # Continue even if database insert fails
         
-        # Show results with fetched data
+        # Add checking for potential parsing issues
+        if not parsed_recommendation or not all(key in parsed_recommendation for key in ['top_recommendations', 'suitability_reasons', 'care_instructions', 'warnings']):
+            # If the parsing failed or data is incomplete, prepare basic fallback data
+            print("Warning: Parsed recommendation data is incomplete or invalid")
+            
+            # We'll still use the template's fallback content in this case
+            
+        # Show results with fetched data - now passing the parsed_recommendation directly
         return render_template('location_results.html', 
-                              crop_recommendation=crop_recommendation, 
-                              soil_data=combined_data)
+                            parsed_recommendation=parsed_recommendation,
+                            soil_data=combined_data)
+
+def parse_crop_recommendation_location(recommendation_text):
+    """
+    Parse the crop recommendation text into a structured format with enhanced error handling
     
-    return redirect(url_for('dashboard'))
+    Args:
+        recommendation_text (str): The raw text from the AI recommendation
+        
+    Returns:
+        dict: A structured dictionary with parsed recommendation data
+    """
+    # Initialize the structure for parsed recommendation
+    result = {
+        'top_recommendations': [],
+        'suitability_reasons': [],
+        'care_instructions': [],
+        'warnings': []
+    }
+    
+    # Safety check - if input is empty or not a string
+    if not recommendation_text or not isinstance(recommendation_text, str):
+        print("Warning: Invalid recommendation text input")
+        return result
+    
+    # Extract sections using the headings as delimiters
+    sections = {}
+    current_section = None
+    section_content = []
+    
+    # Check if text is in the new format or old format
+    is_new_format = '*Crop Recommendations*' in recommendation_text
+    
+    try:
+        lines = recommendation_text.split('\n')
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            if not line:
+                i += 1
+                continue
+                
+            # Check for main section headers in different formats
+            if '*Top 3 Recommendations:' in line or ('Top Recommendations:*' in line):
+                if current_section and section_content:
+                    sections[current_section] = section_content
+                current_section = 'recommendations'
+                section_content = []
+            elif '*Why these crops are suitable:*' in line:
+                if current_section and section_content:
+                    sections[current_section] = section_content
+                current_section = 'suitability'
+                section_content = []
+            elif '*Basic Care Instructions:' in line or ('*Basic care instructions for the recommended crops:*' in line):
+                if current_section and section_content:
+                    sections[current_section] = section_content
+                current_section = 'care_instructions'
+                section_content = []
+            elif '*Warnings and Special Considerations:' in line or ('*Warnings or special considerations:*' in line):
+                if current_section and section_content:
+                    sections[current_section] = section_content
+                current_section = 'warnings'
+                section_content = []
+            elif current_section:
+                # For lines that are part of a section
+                section_content.append(line)
+            elif '*Crop Recommendations*' in line:
+                # Skip header line in new format
+                pass
+            i += 1
+        
+        # Add the last section
+        if current_section and section_content:
+            sections[current_section] = section_content
+        
+        # Process recommendations section
+        if 'recommendations' in sections:
+            for line in sections['recommendations']:
+                if line.strip() == '*':
+                    # Skip empty bullet points
+                    continue
+                    
+                if '**' in line and ')' in line:
+                    # Old format: "1. *Sorghum* (Sorghum bicolor)"
+                    parts = line.split('**')
+                    if len(parts) >= 2:
+                        crop_name = parts[1].strip()
+                        scientific_name = None
+                        
+                        # Try to extract scientific name
+                        if '(' in line and ')' in line:
+                            sci_part = line.split('(')[1]
+                            if ')' in sci_part:
+                                scientific_name = sci_part.split(')')[0].strip()
+                        
+                        result['top_recommendations'].append({
+                            'name': crop_name,
+                            'scientific_name': scientific_name
+                        })
+                elif line.startswith('') and not line.strip() == '':
+                    # Extract crop names from bullet points if not empty bullet
+                    crop_line = line.replace('*', '', 1).strip()
+                    if crop_line and crop_line not in ['', ' ']:
+                        result['top_recommendations'].append({
+                            'name': crop_line,
+                            'scientific_name': None
+                        })
+                # Additional format checking: capture numbered items without **
+                elif re.match(r'^\d+\.\s+\w+', line):
+                    # Format: "1. Crop name"
+                    crop_name = re.sub(r'^\d+\.\s+', '', line).strip()
+                    result['top_recommendations'].append({
+                        'name': crop_name,
+                        'scientific_name': None
+                    })
+        
+        # Process suitability reasons
+        if 'suitability' in sections:
+            for line in sections['suitability']:
+                if line.startswith('*'):
+                    if '**' in line:
+                        # New format with bolded category: "* *Soil pH*: All three crops..."
+                        parts = line.split('**')
+                        if len(parts) >= 3:
+                            category = parts[1].strip()
+                            text = parts[2].strip()
+                            if text.startswith(':'):
+                                text = text[1:].strip()
+                            reason = f"{category}: {text}"
+                            result['suitability_reasons'].append(reason)
+                    else:
+                        # Old format: "* The soil has a balanced..."
+                        reason = line.replace('*', '', 1).strip()
+                        result['suitability_reasons'].append(reason)
+                # Also catch non-bulleted lines if they look like suitability reasons
+                elif line and not line.startswith('#') and not line.startswith('**'):
+                    result['suitability_reasons'].append(line)
+        
+        # Process care instructions - handle both formats
+        if 'care_instructions' in sections:
+            current_crop = None
+            crop_instructions = []
+            general_instructions = []
+            
+            for line in sections['care_instructions']:
+                if line.startswith('*'):
+                    # New format - just bullet points
+                    instruction = line.replace('*', '', 1).strip()
+                    general_instructions.append(instruction)
+                elif '**' in line and ':' in line:
+                    # Old format with crop names
+                    if current_crop and crop_instructions:
+                        result['care_instructions'].append({
+                            'crop': current_crop,
+                            'instructions': crop_instructions
+                        })
+                    
+                    current_crop = line.split('**')[1].split(':')[0].strip()
+                    crop_instructions = []
+                elif line.startswith('-') and current_crop:
+                    # Handle dash bullet points
+                    instruction = line.replace('-', '', 1).strip()
+                    crop_instructions.append(instruction)
+                elif line.startswith('*') and current_crop:
+                    instruction = line.replace('*', '', 1).strip()
+                    crop_instructions.append(instruction)
+                # Check for headers that might indicate crop names
+                elif re.match(r'^[A-Z][a-z]+:$', line) or line.endswith(':'):
+                    if current_crop and crop_instructions:
+                        result['care_instructions'].append({
+                            'crop': current_crop,
+                            'instructions': crop_instructions
+                        })
+                    current_crop = line.rstrip(':').strip()
+                    crop_instructions = []
+            
+            # Add the last crop instructions
+            if current_crop and crop_instructions:
+                result['care_instructions'].append({
+                    'crop': current_crop,
+                    'instructions': crop_instructions
+                })
+            
+            # If we only have general instructions (new format), group them by crops
+            if general_instructions and not result['care_instructions']:
+                # First, check for any crop names in the general instructions
+                crop_instructions_map = {}
+                current_crop = "General"
+                
+                for instruction in general_instructions:
+                    # Check if this line might be a crop name (short and ends with colon)
+                    if ':' in instruction and len(instruction.split(':')[0]) < 20:
+                        current_crop = instruction.split(':')[0].strip()
+                        instruction_content = instruction.split(':', 1)[1].strip()
+                        if current_crop not in crop_instructions_map:
+                            crop_instructions_map[current_crop] = []
+                        if instruction_content:
+                            crop_instructions_map[current_crop].append(instruction_content)
+                    else:
+                        if current_crop not in crop_instructions_map:
+                            crop_instructions_map[current_crop] = []
+                        crop_instructions_map[current_crop].append(instruction)
+                
+                # Convert the map to the expected format
+                for crop, instructions in crop_instructions_map.items():
+                    result['care_instructions'].append({
+                        'crop': crop,
+                        'instructions': instructions
+                    })
+                
+                # If still no structured instructions, try to group them by sets of 3
+                if not result['care_instructions']:
+                    # Try to group instructions by sets of 3 (assuming 3 crops with 3 instructions each)
+                    if len(general_instructions) >= 9 and len(result['top_recommendations']) == 3:
+                        for i in range(3):
+                            if i * 3 < len(general_instructions):
+                                crop_name = result['top_recommendations'][i]['name'] if i < len(result['top_recommendations']) else f"Crop {i+1}"
+                                result['care_instructions'].append({
+                                    'crop': crop_name,
+                                    'instructions': general_instructions[i*3:i*3+3]
+                                })
+                    else:
+                        # If we can't group them, just add them as general instructions
+                        result['care_instructions'].append({
+                            'crop': "General",
+                            'instructions': general_instructions
+                        })
+        
+        # Process warnings
+        if 'warnings' in sections:
+            current_warning = None
+            warning_text = ''
+            
+            for line in sections['warnings']:
+                if line.startswith('') and '*' in line:
+                    # New format: "* *Irrigation*: While the crops..."
+                    # If we have a previous warning, save it
+                    if current_warning and warning_text:
+                        result['warnings'].append({
+                            'type': current_warning,
+                            'text': warning_text.strip()
+                        })
+                    
+                    # Parse the new warning
+                    parts = line.replace('', '', 1).strip().split('*')
+                    if len(parts) >= 3:
+                        current_warning = parts[1].strip()
+                        warning_text = parts[2].strip()
+                        if warning_text.startswith(':'):
+                            warning_text = warning_text[1:].strip()
+                elif line.startswith('*') and ':' in line:
+                    # Old format: "* Irrigation: Although these crops..."
+                    # If we have a previous warning, save it
+                    if current_warning and warning_text:
+                        result['warnings'].append({
+                            'type': current_warning,
+                            'text': warning_text.strip()
+                        })
+                    
+                    # Start a new warning
+                    parts = line.split(':', 1)
+                    current_warning = parts[0].replace('*', '', 1).strip()
+                    warning_text = parts[1].strip() if len(parts) > 1 else ''
+                elif current_warning and line:
+                    warning_text += ' ' + line
+                # Also catch lines that look like warnings with colons
+                elif ':' in line and not line.startswith('#') and not line.startswith('**'):
+                    parts = line.split(':', 1)
+                    warning_type = parts[0].strip()
+                    warning_text = parts[1].strip() if len(parts) > 1 else ''
+                    if warning_type and warning_text and len(warning_type) < 25:  # Reasonable length for a warning type
+                        result['warnings'].append({
+                            'type': warning_type,
+                            'text': warning_text
+                        })
+            
+            # Add the last warning
+            if current_warning and warning_text:
+                result['warnings'].append({
+                    'type': current_warning,
+                    'text': warning_text.strip()
+                })
+        
+        # Add the conclusion paragraph if it exists
+        if 'warnings' in sections and sections['warnings']:
+            conclusion = sections['warnings'][-1]
+            if conclusion.startswith('By following'):
+                result['conclusion'] = conclusion
+    
+    except Exception as e:
+        print(f"Error parsing crop recommendation: {str(e)}")
+        # Continue with what we have so far
+    
+    # If we don't have any recommendations, add default ones
+    if not result['top_recommendations']:
+        # Add some fallback recommendations
+        result['top_recommendations'] = [
+            {'name': 'Sesame', 'scientific_name': None},
+            {'name': 'Peanut', 'scientific_name': None},
+            {'name': 'Okra', 'scientific_name': None}
+        ]
+    
+    # Make sure each section has at least some content
+    if not result['suitability_reasons']:
+        result['suitability_reasons'] = [
+            "Suitable for the provided soil and climate conditions."
+        ]
+    
+    if not result['care_instructions']:
+        result['care_instructions'] = [
+            {
+                'crop': "General",
+                'instructions': [
+                    "Prepare soil properly before planting.",
+                    "Ensure adequate water supply based on crop requirements.",
+                    "Monitor regularly for pests and diseases."
+                ]
+            }
+        ]
+    
+    if not result['warnings']:
+        result['warnings'] = [
+            {
+                'type': 'General',
+                'text': "Monitor local weather conditions and adjust care practices accordingly."
+            }
+        ]
+    
+    return result
+
+def format_recommendation_for_display(parsed_recommendation):
+    """
+    Format the parsed recommendation data into HTML-friendly format
+    
+    Args:
+        parsed_recommendation (dict): The parsed recommendation data
+        
+    Returns:
+        str: HTML-formatted recommendation content
+    """
+    html_content = []
+    
+    # Add top recommendations
+    html_content.append("<h4>Top Recommendations:</h4>")
+    html_content.append("<ul class='list-group mb-4'>")
+    for i, crop in enumerate(parsed_recommendation['top_recommendations']):
+        if crop['scientific_name']:
+            html_content.append(f"<li class='list-group-item'><strong>{i+1}. {crop['name']}</strong> ({crop['scientific_name']})</li>")
+        else:
+            html_content.append(f"<li class='list-group-item'><strong>{i+1}. {crop['name']}</strong></li>")
+    html_content.append("</ul>")
+    
+    # Add suitability reasons
+    html_content.append("<h4>Why these crops are suitable:</h4>")
+    html_content.append("<ul class='list-group mb-4'>")
+    for reason in parsed_recommendation['suitability_reasons']:
+        html_content.append(f"<li class='list-group-item'>{reason}</li>")
+    html_content.append("</ul>")
+    
+    # Add care instructions
+    html_content.append("<h4>Basic Care Instructions:</h4>")
+    html_content.append("<div class='care-instructions mb-4'>")
+    
+    # Handle both new and old format of care instructions
+    if isinstance(parsed_recommendation['care_instructions'], list):
+        # New format - list of dicts with crop and instructions
+        for care_item in parsed_recommendation['care_instructions']:
+            html_content.append(f"<h5>{care_item['crop']}:</h5>")
+            html_content.append("<ul class='list-group mb-3'>")
+            for instruction in care_item['instructions']:
+                html_content.append(f"<li class='list-group-item'>{instruction}</li>")
+            html_content.append("</ul>")
+    else:
+        # Old format - dict with crop keys and instruction list values
+        for crop, instructions in parsed_recommendation['care_instructions'].items():
+            html_content.append(f"<h5>{crop}:</h5>")
+            html_content.append("<ul class='list-group mb-3'>")
+            for instruction in instructions:
+                html_content.append(f"<li class='list-group-item'>{instruction}</li>")
+            html_content.append("</ul>")
+    
+    html_content.append("</div>")
+    
+    # Add warnings
+    html_content.append("<h4>Warnings and Special Considerations:</h4>")
+    html_content.append("<ul class='list-group mb-4'>")
+    for warning in parsed_recommendation['warnings']:
+        html_content.append(f"<li class='list-group-item warning-item'><strong>{warning['type']}:</strong> {warning['text']}</li>")
+    html_content.append("</ul>")
+    
+    # Add conclusion if it exists
+    if 'conclusion' in parsed_recommendation:
+        html_content.append(f"<p class='mt-4'>{parsed_recommendation['conclusion']}</p>")
+    
+    return "\n".join(html_content)
 
 @app.route('/manual_soil')
 def manual_soil():

@@ -1,327 +1,552 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ "Final Farm Report"|translate }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Final Farm Report</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .report-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        .report-header {
-            background-color: #28a745;
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            transition: transform 0.3s;
-        }
-        .report-header:hover {
-            transform: translateY(-3px);
-        }
-        .data-card {
-            border-left: 4px solid #28a745;
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-        .data-card:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        .recommendation-box {
-            background-color: #e9f7ef;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            border-left: 4px solid #28a745;
-            transition: all 0.3s;
-        }
-        .recommendation-box:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        .health-indicator {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            margin: 0 auto;
-            transition: transform 0.3s;
-        }
-        .health-indicator:hover {
-            transform: scale(1.05);
-        }
-        .report-footer {
-            margin-top: 30px;
-            text-align: center;
-            color: #6c757d;
-        }
-        .page-title {
-            color: #28a745;
-            font-weight: 600;
-            position: relative;
-            padding-bottom: 10px;
-        }
-        .page-title:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 3px;
-            background-color: #28a745;
-        }
-        .report-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .btn-action {
-            padding: 6px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s;
-        }
-        .btn-action:hover {
-            transform: translateY(-2px);
-        }
-        .delete-confirmation-modal .modal-content {
-            border-radius: 15px;
-        }
-        .delete-confirmation-modal .modal-header {
-            background-color: #dc3545;
-            color: white;
-            border-radius: 15px 15px 0 0;
-        }
-        .delete-confirmation-modal .modal-footer {
-            justify-content: center;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-        }
-        .empty-state i {
-            font-size: 50px;
-            color: #6c757d;
-            margin-bottom: 15px;
-        }
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-        .nav-item .nav-link {
-            position: relative;
-            padding: 10px 15px;
-        }
-        .nav-item .nav-link:after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: #28a745;
-            transition: width 0.3s;
-        }
-        .nav-item .nav-link:hover:after {
-            width: 100%;
-        }
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .report-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+      .report-header {
+        background-color: #28a745;
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+      }
+      .report-header:hover {
+        transform: translateY(-3px);
+      }
+      .data-card {
+        border-left: 4px solid #28a745;
+        background-color: #f8f9fa;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        transition: all 0.3s;
+      }
+      .data-card:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .recommendation-box {
+        background-color: #e9f7ef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+        border-left: 4px solid #28a745;
+        transition: all 0.3s;
+      }
+      .recommendation-box:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      .health-indicator {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        margin: 0 auto;
+        transition: transform 0.3s;
+      }
+      .health-indicator:hover {
+        transform: scale(1.05);
+      }
+      .report-footer {
+        margin-top: 30px;
+        text-align: center;
+        color: #6c757d;
+      }
+      .page-title {
+        color: #28a745;
+        font-weight: 600;
+        position: relative;
+        padding-bottom: 10px;
+      }
+      .page-title:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: #28a745;
+      }
+      .report-actions {
+        display: flex;
+        gap: 10px;
+      }
+      .btn-action {
+        padding: 6px 14px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s;
+      }
+      .btn-action:hover {
+        transform: translateY(-2px);
+      }
+      .delete-confirmation-modal .modal-content {
+        border-radius: 15px;
+      }
+      .delete-confirmation-modal .modal-header {
+        background-color: #dc3545;
+        color: white;
+        border-radius: 15px 15px 0 0;
+      }
+      .delete-confirmation-modal .modal-footer {
+        justify-content: center;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+      }
+      .empty-state i {
+        font-size: 50px;
+        color: #6c757d;
+        margin-bottom: 15px;
+      }
+      .navbar {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+      }
+      .nav-item .nav-link {
+        position: relative;
+        padding: 10px 15px;
+      }
+      .nav-item .nav-link:after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: 0;
+        left: 0;
+        background-color: #28a745;
+        transition: width 0.3s;
+      }
+      .nav-item .nav-link:hover:after {
+        width: 100%;
+      }
+      .crop-card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #28a745;
+      }
+      .crop-title {
+        color: #28a745;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .care-instruction {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+      .warning-box {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+      }
+      .crop-benefits {
+        background-color: #e7f5ff;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <i class="bi bi-tree"></i> {{ "Farm Advisor"|translate }}
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> {{ "Dashboard"|translate }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('input_form') }}">
-                            <i class="bi bi-plus-circle"></i> {{ "New Analysis"|translate }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('weather_data') }}">
-                            <i class="bi bi-cloud-sun"></i> {{ "Weather"|translate }}
-                        </a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('profile') }}">
-                            <i class="bi bi-person-circle"></i> {{ "Profile"|translate }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="bi bi-box-arrow-right"></i> {{ "Logout"|translate }}
-                        </a>
-                    </li>
-                </ul>
-            </div>
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+          <i class="bi bi-tree"></i> Farm Advisor
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('dashboard') }}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('input_form') }}">
+                <i class="bi bi-plus-circle"></i> New Analysis
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('weather_data') }}">
+                <i class="bi bi-cloud-sun"></i> Weather
+              </a>
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('profile') }}">
+                <i class="bi bi-person-circle"></i> Profile
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('logout') }}">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </li>
+          </ul>
         </div>
+      </div>
     </nav>
 
     <div class="container report-container">
-        <h2 class="text-center mb-4 page-title">{{ "Farm Analysis Reports"|translate }}</h2>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message|translate }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ 'Close'|translate }}"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+      <h2 class="text-center mb-4 page-title">Farm Analysis Reports</h2>
 
-        {% if reports %}
-            {% for report in reports %}
-                <div class="report-item mb-4">
-                    <div class="report-header">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h3>{{ "Report ID"|translate }}: {{ report.report_id }}</h3>
-                                <p class="mb-0">
-                                    <i class="bi bi-calendar-event"></i> {{ "Generated on"|translate }}: {{ report.created_at }}
-                                </p>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <div class="report-actions">
-                                    <a href="{{ url_for('download_report', report_id=report.report_id) }}" class="btn btn-light btn-action">
-                                        <i class="bi bi-download"></i> {{ "Download"|translate }}
-                                    </a>
-                                    <button class="btn btn-danger btn-action" data-bs-toggle="modal" data-bs-target="#deleteModal{{ report.report_id }}">
-                                        <i class="bi bi-trash"></i> {{ "Delete"|translate }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4><i class="bi bi-flower1"></i> {{ "Leaf Health Analysis"|translate }}</h4>
-                            {% if report.leaf_analysis %}
-                            <div class="data-card">
-                                <div class="text-center mb-3">
-                                    <div class="health-indicator" style="background-color: #8CCB5E;">
-                                        {{ report.leaf_analysis.split(':')[0]|translate }}
-                                    </div>
-                                </div>
-                                <p><strong>{{ "Status"|translate }}:</strong> {{ report.leaf_analysis|translate }}</p>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-circle"></i> {{ "No leaf analysis data available for this report."|translate }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                      
-
-                            <h4><i class="bi bi-droplet-fill"></i> {{ "Fertilizer Recommendation"|translate }}</h4>
-                            {% if report.fertilizer_recommendation %}
-                            <div class="recommendation-box">
-                                <h5>{{ report.fertilizer_recommendation|translate }}</h5>
-                                <p>{{ "Apply as recommended based on leaf analysis and soil conditions."|translate }}</p>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-circle"></i> {{ "No fertilizer recommendation available for this report."|translate }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="recommendation-box mt-4">
-                        <h4><i class="bi bi-award"></i> {{ "Crop Recommendation"|translate }}</h4>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5>{{ "Recommended Crop"|translate }}: {{ report.crop_recommendation|translate }}</h5>
-                                <p>{{ "This crop is well-suited for your soil conditions and climate."|translate }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="alert alert-success">
-                                    <i class="bi bi-info-circle"></i> {{ "Expected yield: High based on your conditions"|translate }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Delete Confirmation Modal -->
-                    <div class="modal fade delete-confirmation-modal" id="deleteModal{{ report.report_id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ report.report_id }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="deleteModalLabel{{ report.report_id }}">
-                                        <i class="bi bi-exclamation-triangle"></i> {{ "Confirm Deletion"|translate }}
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'Close'|translate }}"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p>{{ "Are you sure you want to delete this report (ID: {report_id})? This action cannot be undone."|format(report_id=report.report_id)|translate }}</p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ "Cancel"|translate }}</button>
-                                    <form action="{{ url_for('delete_report', report_id=report.report_id) }}" method="post">
-                                        <button type="submit" class="btn btn-danger">{{ "Delete Report"|translate }}</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <i class="bi bi-folder-x"></i>
-                <h4>{{ "No Reports Available"|translate }}</h4>
-                <p class="text-muted">{{ "You haven't generated any farm analysis reports yet."|translate }}</p>
-                <a href="{{ url_for('input_form') }}" class="btn btn-success mt-3">
-                    <i class="bi bi-plus-circle"></i> {{ "Create Your First Report"|translate }}
-                </a>
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endfor %} {% endif %} {% endwith %} {% if reports %} {% for report in
+      reports %}
+      <div class="report-item mb-4">
+        <div class="report-header">
+          <div class="row">
+            <div class="col-md-8">
+              <h3>Report ID: {{ report.report_id }}</h3>
+              <p class="mb-0">
+                <i class="bi bi-calendar-event"></i> Generated on: {{
+                report.created_at }}
+              </p>
             </div>
-        {% endif %}
-
-        <div class="report-footer">
-            <p>{{ "Farm Advisor"|translate }} &copy; 2025 | {{ "All Rights Reserved"|translate }}</p>
+            <div class="col-md-4 text-end">
+              <div class="report-actions">
+                <a
+                  href="{{ url_for('download_report', report_id=report.report_id) }}"
+                  class="btn btn-light btn-action"
+                >
+                  <i class="bi bi-download"></i> Download
+                </a>
+                <button
+                  class="btn btn-danger btn-action"
+                  data-bs-toggle="modal"
+                  data-bs-target="#deleteModal{{ report.report_id }}"
+                >
+                  <i class="bi bi-trash"></i> Delete
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h4><i class="bi bi-moisture"></i> Soil Analysis</h4>
+            <div class="data-card">
+              <p><strong>Nitrogen (N):</strong> {{ report.soil_n }} mg/kg</p>
+              <p><strong>Phosphorus (P):</strong> {{ report.soil_p }} mg/kg</p>
+              <p><strong>Potassium (K):</strong> {{ report.soil_k }} mg/kg</p>
+              <p><strong>pH Level:</strong> {{ report.soil_ph }}</p>
+            </div>
+
+            <h4><i class="bi bi-cloud"></i> Climate Conditions</h4>
+            <div class="data-card">
+              <p><strong>Rainfall:</strong> {{ report.rainfall }} mm</p>
+              <p><strong>Temperature:</strong> {{ report.temperature }}°C</p>
+              <p><strong>Humidity:</strong> {{ report.humidity }}%</p>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <h4><i class="bi bi-flower1"></i> Leaf Health Analysis</h4>
+            {% if report.leaf_analysis %}
+            <div class="data-card">
+              <div class="text-center mb-3">
+                {% set health_color = '#8CCB5E' if 'Healthy' in
+                report.leaf_analysis else '#FFCC00' if 'Yellowing' in
+                report.leaf_analysis else '#A67C52' if 'Brown Spots' in
+                report.leaf_analysis else '#E74C3C' %}
+                <div
+                  class="health-indicator"
+                  style="background-color: {{ health_color }};"
+                >
+                  {{ report.leaf_analysis.split(':')[0] }}
+                </div>
+              </div>
+              <p><strong>Status:</strong> {{ report.leaf_analysis }}</p>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-circle"></i> No leaf analysis data
+              available for this report.
+            </div>
+            {% endif %}
+
+            <h4>
+              <i class="bi bi-droplet-fill"></i> Fertilizer Recommendation
+            </h4>
+            {% if report.fertilizer_recommendation %}
+            <div class="recommendation-box">
+              <h5>{{ report.fertilizer_recommendation }}</h5>
+              <p>
+                Apply as recommended based on leaf analysis and soil conditions.
+              </p>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-circle"></i> No fertilizer
+              recommendation available for this report.
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="recommendation-box mt-4">
+          <h4><i class="bi bi-award"></i> Crop Recommendation</h4>
+          <div class="row">
+            <div class="col-md-12">
+              <h5 class="mb-3">
+                Top Recommended Crops for Your Farm Conditions:
+              </h5>
+
+              <div class="crop-card">
+                <h5 class="crop-title">1. Peanuts (Arachis hypogaea)</h5>
+                <div class="crop-benefits">
+                  <p>
+                    <strong>Why suitable:</strong> Peanuts are a legume crop
+                    that can thrive in neutral soil pH (7.0) and moderate
+                    temperatures (28.96°C). They are drought-tolerant, making
+                    them suitable for areas with low rainfall (0 mm). Peanuts
+                    are also nitrogen-fixing, which can benefit from the
+                    moderate nitrogen levels (50 mg/kg) in the soil.
+                  </p>
+                </div>
+                <div class="care-instruction">
+                  <h6><i class="bi bi-info-circle"></i> Care Instructions:</h6>
+                  <ul>
+                    <li>Plant at a depth of 2-3 inches (5-7.5 cm)</li>
+                    <li>Water regularly, but avoid overwatering</li>
+                    <li>
+                      Fertilize with a balanced fertilizer (e.g., 10-10-10) at
+                      planting and again 30 days after planting
+                    </li>
+                    <li>
+                      Harvest when the peanuts are mature and dry, usually
+                      around 120-150 days after planting
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="crop-card">
+                <h5 class="crop-title">2. Sorghum (Sorghum bicolor)</h5>
+                <div class="crop-benefits">
+                  <p>
+                    <strong>Why suitable:</strong> Sorghum is a drought-tolerant
+                    crop that can grow well in warm temperatures (28.96°C) and
+                    low rainfall (0 mm). It can thrive in neutral to slightly
+                    alkaline soils (pH 7.0). Sorghum is also a good choice for
+                    areas with moderate phosphorus levels (50 mg/kg).
+                  </p>
+                </div>
+                <div class="care-instruction">
+                  <h6><i class="bi bi-info-circle"></i> Care Instructions:</h6>
+                  <ul>
+                    <li>Plant at a depth of 1-2 inches (2.5-5 cm)</li>
+                    <li>Water regularly, but avoid overwatering</li>
+                    <li>
+                      Fertilize with a balanced fertilizer (e.g., 10-10-10) at
+                      planting and again 30 days after planting
+                    </li>
+                    <li>
+                      Harvest when the grain is dry and hard, usually around
+                      90-120 days after planting
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="crop-card">
+                <h5 class="crop-title">3. Cowpeas (Vigna unguiculata)</h5>
+                <div class="crop-benefits">
+                  <p>
+                    <strong>Why suitable:</strong> Cowpeas are a legume crop
+                    that can tolerate a wide range of soil pH (7.0) and
+                    temperatures (28.96°C). They are also drought-tolerant,
+                    making them suitable for areas with low rainfall (0 mm).
+                    Cowpeas can benefit from the moderate levels (50 mg/kg) in
+                    the soil.
+                  </p>
+                </div>
+                <div class="care-instruction">
+                  <h6><i class="bi bi-info-circle"></i> Care Instructions:</h6>
+                  <ul>
+                    <li>Plant at a depth of 1-2 inches (2.5-5 cm)</li>
+                    <li>Water regularly, but avoid overwatering</li>
+                    <li>
+                      Fertilize with a balanced fertilizer (e.g., 10-10-10) at
+                      planting and again 30 days after planting
+                    </li>
+                    <li>
+                      Harvest when the pods are dry and brittle, usually around
+                      90-120 days after planting
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="warning-box">
+                <h5>
+                  <i class="bi bi-exclamation-triangle"></i> Warnings and
+                  Special Considerations:
+                </h5>
+                <ul>
+                  <li>
+                    <strong>Drought:</strong> While these crops are
+                    drought-tolerant, they still require some rainfall or
+                    irrigation to thrive. Be prepared to irrigate if rainfall is
+                    exceptionally low.
+                  </li>
+                  <li>
+                    <strong>Pests and Diseases:</strong> Keep an eye out for
+                    pests and diseases, such as aphids, whiteflies, and fungal
+                    diseases like powdery mildew. Use integrated pest management
+                    techniques to minimize damage.
+                  </li>
+                  <li>
+                    <strong>Soil Compaction:</strong> Be mindful of soil
+                    compaction, especially when planting and harvesting, as it
+                    can reduce soil fertility and crop yields.
+                  </li>
+                </ul>
+                <p class="mt-2">
+                  <em
+                    >Note: Specific growing conditions may vary depending on the
+                    specific region and varieties of these crops. Consult local
+                    agricultural experts for more specific guidance.</em
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div
+          class="modal fade delete-confirmation-modal"
+          id="deleteModal{{ report.report_id }}"
+          tabindex="-1"
+          aria-labelledby="deleteModalLabel{{ report.report_id }}"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5
+                  class="modal-title"
+                  id="deleteModalLabel{{ report.report_id }}"
+                >
+                  <i class="bi bi-exclamation-triangle"></i> Confirm Deletion
+                </h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div class="modal-body">
+                <p>
+                  Are you sure you want to delete this report (ID: {{
+                  report.report_id }})? This action cannot be undone.
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancel
+                </button>
+                <form
+                  action="{{ url_for('delete_report', report_id=report.report_id) }}"
+                  method="post"
+                >
+                  <button type="submit" class="btn btn-danger">
+                    Delete Report
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4" />
+      </div>
+      {% endfor %} {% else %}
+      <div class="empty-state">
+        <i class="bi bi-folder-x"></i>
+        <h4>No Reports Available</h4>
+        <p class="text-muted">
+          You haven't generated any farm analysis reports yet.
+        </p>
+        <a href="{{ url_for('input_form') }}" class="btn btn-success mt-3">
+          <i class="bi bi-plus-circle"></i> Create Your First Report
+        </a>
+      </div>
+      {% endif %}
+
+      <div class="report-footer">
+        <p>Farm Advisor &copy; 2025 | All Rights Reserved</p>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  </body>
 </html>

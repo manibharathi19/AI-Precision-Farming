@@ -1,48 +1,192 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('language', 'en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ 'Location Form' | translate }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: 'Arial', sans-serif;
+        :root {
+            --primary-color: #3a86ff;
+            --secondary-color: #8338ec;
+            --accent-color: #ff006e;
+            --light-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #2b2d42;
+            --muted-text: #6c757d;
         }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
         .container {
             max-width: 600px;
-            margin-top: 80px;
-            background-color: white;
+            margin: 60px auto;
+            background-color: var(--card-bg);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
         }
+        
         h2 {
-            text-align: center;
+            color: var(--primary-color);
             margin-bottom: 30px;
-            color: #28a745;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 15px;
         }
-        .btn-success {
-            font-size: 1.1em;
-            padding: 10px;
+        
+        h2::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.15);
+            background-color: white;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2a75e6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .location-icon {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+        }
+        
+        .back-home {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-home {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+        
+        .btn-home:hover {
+            color: #2a75e6;
+            transform: translateX(-3px);
+        }
+        
+        .btn-home i {
+            margin-right: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+                margin: 30px auto;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="location-icon">
+            <i class="fas fa-map-marker-alt"></i>
+        </div>
         <h2>{{ header_text or 'Enter Your Location' | translate }}</h2>
         <form action="/process_location" method="post">
             <div class="mb-4">
-                <label for="location" class="form-label">{{ location_label or 'City Name or PIN Code:' | translate }}</label>
-                <input type="text" class="form-control" id="location" name="location" required placeholder="{{ placeholder_text or 'Ex: Mumbai or 400001' }}">
+                <label for="location" class="form-label">{{ location_label or 'City Name or PIN Code' | translate }}</label>
+                <input type="text" class="form-control" id="location" name="location" required 
+                       placeholder="{{ placeholder_text or 'Example: Mumbai or 400001' | translate }}">
             </div>
             <div class="d-grid">
-                <button type="submit" class="btn btn-success">{{ button_text or 'Fetch Soil & Weather Data' | translate }}</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-cloud-sun me-2"></i> {{ button_text or 'Fetch Soil & Weather Data' | translate }}
+                </button>
             </div>
         </form>
+        
+        <div class="back-home">
+            <a href="/dashboard" class="btn-home">
+                <i class="fas fa-arrow-left me-2"></i> {{ 'Back to Home' | translate }}
+            </a>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple animation for form elements
+        document.addEventListener('DOMContentLoaded', function() {
+            const formElements = document.querySelectorAll('.form-control, .btn-primary');
+            formElements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+            
+            // Animate the location icon
+            const icon = document.querySelector('.location-icon i');
+            icon.style.transform = 'scale(0)';
+            setTimeout(() => {
+                icon.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                icon.style.transform = 'scale(1)';
+            }, 50);
+        });
+    </script>
 </body>
 </html>

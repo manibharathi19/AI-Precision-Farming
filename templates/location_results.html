@@ -1,145 +1,876 @@
 <!DOCTYPE html>
 <html lang="{{ session.get('language', 'en') }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ 'Crop Recommendation Results' | translate }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: 'Arial', sans-serif;
+      :root {
+        --primary-color: #2e7d32;
+        --primary-light: #60ad5e;
+        --primary-dark: #005005;
+        --secondary-color: #f9a825;
+        --neutral-light: #f4f6f9;
+        --neutral-medium: #e0e0e0;
+        --neutral-dark: #424242;
+        --success-color: #4caf50;
+        --warning-color: #ff9800;
+        --danger-color: #f44336;
+        --info-color: #2196f3;
+        --white: #ffffff;
+        --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        --border-radius: 12px;
+      }
+
+      body {
+        background-color: var(--neutral-light);
+        font-family: "Poppins", sans-serif;
+        color: var(--neutral-dark);
+        line-height: 1.6;
+        padding-bottom: 50px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 30px auto;
+      }
+
+      .page-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-light)
+        );
+        color: var(--white);
+        padding: 40px 30px;
+        border-radius: var(--border-radius);
+        margin-bottom: 30px;
+        box-shadow: var(--box-shadow);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .page-header::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffffff30"><path d="M12 22c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9zm0-16c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.14-7-7 3.14-7 7-7zm0 5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>')
+          no-repeat;
+        opacity: 0.2;
+        transform: rotate(45deg);
+      }
+
+      .page-header h1 {
+        font-weight: 700;
+        margin-bottom: 0;
+        font-size: 2.2rem;
+      }
+
+      .page-header p {
+        margin-top: 10px;
+        opacity: 0.9;
+        font-size: 1.1rem;
+        font-weight: 300;
+      }
+
+      .location-badge {
+        display: inline-block;
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 500;
+        margin-top: 15px;
+      }
+
+      .location-badge i {
+        margin-right: 8px;
+      }
+
+      .card {
+        background-color: var(--white);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        margin-bottom: 30px;
+        box-shadow: var(--box-shadow);
+        border: none;
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card-header {
+        background: linear-gradient(
+          to right,
+          var(--primary-color),
+          var(--primary-light)
+        );
+        color: var(--white);
+        padding: 20px 25px;
+        border-bottom: none;
+        font-weight: 600;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .card-header i {
+        margin-right: 12px;
+        font-size: 1.4rem;
+      }
+
+      .card-body {
+        padding: 25px;
+      }
+
+      .parameter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+      }
+
+      .parameter-item {
+        background-color: var(--neutral-light);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border-top: 4px solid var(--primary-color);
+      }
+
+      .parameter-item:hover {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+      }
+
+      .parameter-label {
+        font-weight: 500;
+        color: var(--neutral-dark);
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .parameter-value {
+        font-size: 1.5rem;
+        color: var(--primary-dark);
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .parameter-unit {
+        font-size: 0.8rem;
+        color: var(--neutral-dark);
+        opacity: 0.7;
+        font-weight: 400;
+      }
+
+      .parameter-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        opacity: 0.8;
+      }
+
+      .recommendation-card {
+        background-color: var(--white);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        margin-bottom: 30px;
+        overflow: hidden;
+      }
+
+      .recommendation-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-dark),
+          var(--primary-color)
+        );
+        color: var(--white);
+        padding: 25px;
+        position: relative;
+      }
+
+      .recommendation-header h3 {
+        font-weight: 700;
+        margin-bottom: 5px;
+        font-size: 1.75rem;
+      }
+
+      .recommendation-header p {
+        margin-top: 5px;
+        opacity: 0.9;
+        font-weight: 300;
+      }
+
+      .recommendation-icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 2.5rem;
+        opacity: 0.3;
+      }
+
+      .recommendation-body {
+        padding: 30px;
+      }
+
+      .recommendation-section {
+        margin-bottom: 30px;
+      }
+
+      .recommendation-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .recommendation-section h4 {
+        color: var(--primary-dark);
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--primary-light);
+        display: flex;
+        align-items: center;
+      }
+
+      .recommendation-section h4 i {
+        margin-right: 10px;
+        color: var(--primary-color);
+      }
+
+      .recommendation-content {
+        background-color: var(--neutral-light);
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      .crop-item {
+        display: flex;
+        align-items: center;
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .crop-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .crop-icon {
+        width: 50px;
+        height: 50px;
+        background-color: var(--primary-light);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 1.5rem;
+      }
+
+      .crop-details {
+        flex: 1;
+      }
+
+      .crop-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+      }
+
+      .crop-scientific {
+        color: var(--neutral-dark);
+        font-style: italic;
+        font-size: 0.9rem;
+        opacity: 0.7;
+      }
+
+      .reason-item {
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--info-color);
+      }
+
+      .reason-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .care-instructions {
+        margin-top: 20px;
+      }
+
+      .care-crop-name {
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-top: 20px;
+        margin-bottom: 10px;
+        padding-left: 15px;
+        border-left: 3px solid var(--primary-color);
+        font-size: 1.1rem;
+      }
+
+      .instruction-item {
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--success-color);
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .instruction-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .instruction-icon {
+        color: var(--success-color);
+        margin-right: 15px;
+        font-size: 1.2rem;
+        margin-top: 2px;
+      }
+
+      .warning-item {
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--warning-color);
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .warning-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .warning-icon {
+        color: var(--warning-color);
+        margin-right: 15px;
+        font-size: 1.2rem;
+        margin-top: 2px;
+      }
+
+      .warning-type {
+        font-weight: 600;
+        color: var(--warning-color);
+        margin-right: 5px;
+      }
+
+      .conclusion {
+        background-color: var(--white);
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--primary-color);
+        font-style: italic;
+        color: var(--neutral-dark);
+      }
+
+      .footer-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .btn {
+        border-radius: 50px;
+        padding: 12px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn-outline-success {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      .btn-outline-success:hover {
+        background-color: var(--primary-color);
+        color: var(--white);
+      }
+
+      .btn-success {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      .btn-success:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn i {
+        margin-right: 8px;
+      }
+
+      @media (max-width: 768px) {
+        .parameter-grid {
+          grid-template-columns: 1fr 1fr;
         }
-        .container {
-            max-width: 900px;
-            margin: 50px auto;
-            background-color: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+        .footer-buttons {
+          grid-template-columns: 1fr;
         }
-        .result-header {
-            background-color: #28a745;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: center;
+      }
+
+      @media (max-width: 576px) {
+        .parameter-grid {
+          grid-template-columns: 1fr;
         }
-        .result-section {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 25px;
+
+        .page-header {
+          padding: 30px 20px;
         }
-        .result-section-title {
-            color: #28a745;
-            border-bottom: 2px solid #28a745;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+
+        .card-header,
+        .card-body {
+          padding: 20px;
         }
-        .parameter-item {
-            background-color: white;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+        .recommendation-header,
+        .recommendation-body {
+          padding: 20px;
         }
-        .parameter-label {
-            font-weight: 600;
-            color: #555;
+      }
+
+      /* Adding animation effects */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
         }
-        .parameter-value {
-            font-size: 1.2em;
-            color: #333;
-            font-weight: bold;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .ai-recommendation {
-            background-color: #e8f5e9;
-            border-left: 6px solid #28a745;
-            padding: 25px;
-            margin-top: 30px;
-        }
-        .recommendation-title {
-            color: #28a745;
-            margin-bottom: 15px;
-        }
+      }
+
+      .page-header,
+      .card,
+      .recommendation-card {
+        animation: fadeIn 0.6s ease-out forwards;
+      }
+
+      .card:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .card:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      .recommendation-card {
+        animation-delay: 0.6s;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="result-header">
-            <h1>{{ 'Crop Recommendation Report' | translate }}</h1>
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1>{{ 'Crop Recommendation Report' | translate }}</h1>
+        <p>
+          {{ 'Personalized crop suggestions based on your location and soil
+          analysis' | translate }}
+        </p>
+        <div class="location-badge">
+          <i class="fas fa-map-marker-alt"></i> {{ soil_data.Location }}
         </div>
+      </div>
 
-        <div class="result-section">
-            <h3 class="result-section-title">{{ 'Location Details' | translate }}</h3>
+      <!-- Soil Parameters Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-seedling"></i> {{ 'Soil Parameters' | translate }}
+        </div>
+        <div class="card-body">
+          <div class="parameter-grid">
             <div class="parameter-item">
-                <div class="parameter-label">{{ 'Location' | translate }}</div>
-                <div class="parameter-value">{{ soil_data.Location }}</div>
+              <div class="parameter-icon">
+                <i class="fas fa-flask"></i>
+              </div>
+              <div class="parameter-label">{{ 'Nitrogen' | translate }}</div>
+              <div class="parameter-value">
+                {{ soil_data.Nitrogen }}
+                <span class="parameter-unit">mg/kg</span>
+              </div>
             </div>
+            <div class="parameter-item">
+              <div class="parameter-icon">
+                <i class="fas fa-atom"></i>
+              </div>
+              <div class="parameter-label">{{ 'Phosphorus' | translate }}</div>
+              <div class="parameter-value">
+                {{ soil_data.Phosphorus }}
+                <span class="parameter-unit">mg/kg</span>
+              </div>
+            </div>
+            <div class="parameter-item">
+              <div class="parameter-icon">
+                <i class="fas fa-vial"></i>
+              </div>
+              <div class="parameter-label">{{ 'Potassium' | translate }}</div>
+              <div class="parameter-value">
+                {{ soil_data.Potassium }}
+                <span class="parameter-unit">mg/kg</span>
+              </div>
+            </div>
+            <div class="parameter-item">
+              <div class="parameter-icon">
+                <i class="fas fa-balance-scale"></i>
+              </div>
+              <div class="parameter-label">{{ 'pH' | translate }}</div>
+              <div class="parameter-value">{{ soil_data.pH }}</div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div class="result-section">
-            <h3 class="result-section-title">{{ 'Soil Parameters' | translate }}</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    {% for param in ['Nitrogen', 'Phosphorus', 'Potassium', 'pH'] %}
-                    <div class="parameter-item">
-                        <div class="parameter-label">{{ param | translate }}</div>
-                        <div class="parameter-value">
-                            {{ soil_data[param] }}
-                            {% if param != 'pH' %} <small class="text-muted">{{ 'mg/kg' | translate }}</small>{% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
+      <!-- Weather Parameters Card -->
+      <div class="card">
+        <div class="card-header">
+          <i class="fas fa-cloud-sun"></i> {{ 'Weather Parameters' | translate
+          }}
+        </div>
+        <div class="card-body">
+          <div class="parameter-grid">
+            <div class="parameter-item">
+              <div class="parameter-icon">
+                <i class="fas fa-tint"></i>
+              </div>
+              <div class="parameter-label">{{ 'Rainfall' | translate }}</div>
+              <div class="parameter-value">
+                {{ soil_data.Rainfall }} <span class="parameter-unit">mm</span>
+              </div>
+            </div>
+            <div class="parameter-item">
+              <div class="parameter-icon">
+                <i class="fas fa-temperature-high"></i>
+              </div>
+              <div class="parameter-label">{{ 'Temperature' | translate }}</div>
+              <div class="parameter-value">
+                {{ soil_data.Temperature }}
+                <span class="parameter-unit">°C</span>
+              </div>
+            </div>
+            <div class="parameter-item">
+              <div class="parameter-icon">
+                <i class="fas fa-water"></i>
+              </div>
+              <div class="parameter-label">{{ 'Humidity' | translate }}</div>
+              <div class="parameter-value">
+                {{ soil_data.Humidity }} <span class="parameter-unit">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Recommendation Card -->
+      <div class="recommendation-card">
+        <div class="recommendation-header">
+          <h3>{{ 'Crop Recommendations' | translate }}</h3>
+          <p>{{ 'Based on your soil and climate analysis' | translate }}</p>
+          <div class="recommendation-icon">
+            <i class="fas fa-leaf"></i>
+          </div>
+        </div>
+        <div class="recommendation-body">
+          <!-- Top Recommendations Section -->
+          <div class="recommendation-section">
+            <h4>
+              <i class="fas fa-award"></i> {{ 'Top Recommendations' | translate
+              }}
+            </h4>
+            <div class="recommendation-content">
+              {% if parsed_recommendation and
+              parsed_recommendation.top_recommendations %} {% for crop in
+              parsed_recommendation.top_recommendations %}
+              <div class="crop-item">
+                <div class="crop-icon">
+                  <i class="fas fa-seedling"></i>
                 </div>
-            </div>
-        </div>
-
-        <div class="result-section">
-            <h3 class="result-section-title">{{ 'Weather Parameters' | translate }}</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    {% for param in ['Rainfall', 'Temperature', 'Humidity'] %}
-                    <div class="parameter-item">
-                        <div class="parameter-label">{{ param | translate }}</div>
-                        <div class="parameter-value">
-                            {{ soil_data[param] }}
-                            {% if param == 'Rainfall' %}<small class="text-muted"> {{ 'mm' | translate }}</small>
-                            {% elif param == 'Temperature' %}<small class="text-muted"> {{ '°C' | translate }}</small>
-                            {% elif param == 'Humidity' %}<small class="text-muted"> {{ '%' | translate }}</small>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="crop-details">
+                  <div class="crop-name">{{ loop.index }}. {{ crop.name }}</div>
+                  {% if crop.scientific_name %}
+                  <div class="crop-scientific">{{ crop.scientific_name }}</div>
+                  {% endif %}
                 </div>
+              </div>
+              {% endfor %} {% else %}
+              <!-- Fallback if parsed_recommendation is not properly structured -->
+              <div class="crop-item">
+                <div class="crop-icon">
+                  <i class="fas fa-seedling"></i>
+                </div>
+                <div class="crop-details">
+                  <div class="crop-name">1. Sesame</div>
+                </div>
+              </div>
+              <div class="crop-item">
+                <div class="crop-icon">
+                  <i class="fas fa-seedling"></i>
+                </div>
+                <div class="crop-details">
+                  <div class="crop-name">2. Peanut</div>
+                </div>
+              </div>
+              <div class="crop-item">
+                <div class="crop-icon">
+                  <i class="fas fa-seedling"></i>
+                </div>
+                <div class="crop-details">
+                  <div class="crop-name">3. Okra</div>
+                </div>
+              </div>
+              {% endif %}
             </div>
-        </div>
+          </div>
 
-        <div class="container">
-            <div class="ai-recommendation">
-                <h3 class="recommendation-title">{{ 'Crop Recommendations' | translate }}</h3>
-                <ul class="recommendation-list">
-                    {% for recommendation in crop_recommendation.split('•') %}
-                        {% if recommendation.strip() %}
-                        <li>{{ recommendation.strip() }}</li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+          <!-- Suitability Reasons Section -->
+          <div class="recommendation-section">
+            <h4>
+              <i class="fas fa-check-circle"></i> {{ 'Why These Crops Are
+              Suitable' | translate }}
+            </h4>
+            <div class="recommendation-content">
+              {% if parsed_recommendation and
+              parsed_recommendation.suitability_reasons %} {% for reason in
+              parsed_recommendation.suitability_reasons %}
+              <div class="reason-item">{{ reason }}</div>
+              {% endfor %} {% else %}
+              <!-- Fallback content -->
+              <div class="reason-item">
+                All three crops are tolerant of high temperatures (above 30°C)
+                and can thrive in warm climates.
+              </div>
+              <div class="reason-item">
+                They have moderate to low water requirements, which is suitable
+                for the {{ soil_data.Rainfall }} mm rainfall condition, and can
+                be irrigated efficiently.
+              </div>
+              <div class="reason-item">
+                Sesame and peanut are both legumes, which means they have the
+                ability to fix atmospheric nitrogen, making the {{
+                soil_data.Nitrogen }} mg/kg nitrogen level sufficient for their
+                growth.
+              </div>
+              <div class="reason-item">
+                Okra is a warm-season crop that can tolerate a wide pH range,
+                including the slightly alkaline soil pH of {{ soil_data.pH }}.
+              </div>
+              <div class="reason-item">
+                All three crops are relatively low-maintenance and can thrive in
+                soils with moderate phosphorus ({{ soil_data.Phosphorus }}
+                mg/kg) and potassium ({{ soil_data.Potassium }} mg/kg) levels.
+              </div>
+              {% endif %}
             </div>
-        </div>
+          </div>
 
-        <div class="row mt-4">
-            <div class="col-md-6 d-grid">
-                <a href="/dashboard" class="btn btn-outline-success">{{ 'Back to Home' | translate }}</a>
+          <!-- Care Instructions Section -->
+          <div class="recommendation-section">
+            <h4>
+              <i class="fas fa-tasks"></i> {{ 'Basic Care Instructions' |
+              translate }}
+            </h4>
+            <div class="recommendation-content">
+              {% if parsed_recommendation and
+              parsed_recommendation.care_instructions %} {% for care_item in
+              parsed_recommendation.care_instructions %}
+              <div class="care-crop-name">{{ care_item.crop }}</div>
+              {% for instruction in care_item.instructions %}
+              <div class="instruction-item">
+                <div class="instruction-icon">
+                  <i class="fas fa-check"></i>
+                </div>
+                <div>{{ instruction }}</div>
+              </div>
+              {% endfor %} {% endfor %} {% else %}
+              <!-- Fallback content -->
+              <div class="care-crop-name">Sesame</div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Plant seeds at a depth of 1-2 cm with 30 cm between rows. Thin
+                  seedlings to 10-15 cm apart after germination.
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Irrigate regularly but avoid waterlogging. Sesame is
+                  drought-tolerant once established.
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Harvest when the lower capsules begin to open, typically
+                  90-120 days after planting.
+                </div>
+              </div>
+
+              <div class="care-crop-name">Peanut</div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Plant seeds 3-5 cm deep with 30-45 cm between rows. Soil
+                  should be well-drained and loose to allow pod development.
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Ensure consistent moisture during flowering and pod formation
+                  (40-100 days after planting).
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Harvest when plants turn yellowish and peanut shells have
+                  visible veins, typically 120-150 days after planting.
+                </div>
+              </div>
+
+              <div class="care-crop-name">Okra</div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Soak seeds for 24 hours before planting to improve
+                  germination. Plant 1-2 cm deep with 45-60 cm between rows.
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Water regularly, especially during flowering and fruiting.
+                  Apply mulch to retain moisture.
+                </div>
+              </div>
+              <div class="instruction-item">
+                <div class="instruction-icon"><i class="fas fa-check"></i></div>
+                <div>
+                  Harvest pods when they're 2-3 inches long, typically 4-6 days
+                  after flowering. Regular harvesting encourages more
+                  production.
+                </div>
+              </div>
+              {% endif %}
             </div>
-            <div class="col-md-6 d-grid">
-                <a href="/final_report/" class="btn btn-success">{{ 'Download Report' | translate }}</a>
+          </div>
+
+          <!-- Warnings Section -->
+          <div class="recommendation-section">
+            <h4>
+              <i class="fas fa-exclamation-triangle"></i> {{ 'Warnings and
+              Special Considerations' | translate }}
+            </h4>
+            <div class="recommendation-content">
+              {% if parsed_recommendation and parsed_recommendation.warnings %}
+              {% for warning in parsed_recommendation.warnings %}
+              <div class="warning-item">
+                <div class="warning-icon">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                  <span class="warning-type">{{ warning.type }}:</span> {{
+                  warning.text }}
+                </div>
+              </div>
+              {% endfor %} {% else %}
+              <!-- Fallback content -->
+              <div class="warning-item">
+                <div class="warning-icon">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                  <span class="warning-type">Irrigation:</span> While these
+                  crops are relatively drought-tolerant, they will require
+                  supplemental irrigation due to the very low rainfall in your
+                  area. Implement an efficient irrigation system.
+                </div>
+              </div>
+              <div class="warning-item">
+                <div class="warning-icon">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                  <span class="warning-type">Pests and Diseases:</span> Monitor
+                  for aphids, whiteflies, and pod borers on all three crops. In
+                  hot and humid conditions, be vigilant for fungal diseases.
+                </div>
+              </div>
+              <div class="warning-item">
+                <div class="warning-icon">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div>
+                  <span class="warning-type">Climate:</span> The high
+                  temperatures ({{ soil_data.Temperature }}°C) may cause stress
+                  during flowering. Consider partial shade or time plantings to
+                  avoid the hottest months.
+                </div>
+              </div>
+              {% endif %}
             </div>
+          </div>
+
+          <!-- Conclusion Section (if available) -->
+          {% if parsed_recommendation.conclusion %}
+          <div class="conclusion">{{ parsed_recommendation.conclusion }}</div>
+          {% endif %}
         </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="footer-buttons">
+        <a href="/dashboard" class="btn btn-outline-success">
+          <i class="fas fa-home"></i> {{ 'Back to Home' | translate }}
+        </a>
+        <a href="/final_report/" class="btn btn-success">
+          <i class="fas fa-download"></i> {{ 'Download Report' | translate }}
+        </a>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  </body>
 </html>
