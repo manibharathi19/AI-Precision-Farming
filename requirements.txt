@@ -10,7 +10,7 @@ numpy==1.26.4
 pandas==2.2.2
 deep-translator==1.11.4
 gunicorn==21.2.0
-groq==0.5.0
+google-generativeai==0.8.3
 httpx==0.24.1  # 👈 this is critical
 cachelib==0.10.2
 Werkzeug==2.3.8
