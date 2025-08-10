@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import requests
 from geopy.geocoders import Nominatim
 from werkzeug.utils import secure_filename
-from groq import Groq
+import google.generativeai as genai
 import base64
 import cv2
 import io
@@ -78,14 +78,13 @@ cache = Cache(app, config={
     'CACHE_DEFAULT_TIMEOUT': 300  # 5 minutes
 })
 
-# Configure Groq client
-groq_client = Groq(api_key="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")
-GROQ_MODEL = "llama3-70b-8192"  # or another appropriate model
-
+# Configure Gemini client
 load_dotenv()
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCqKpBvMwJVqwJVqwJVqwJVqwJVqwJVqwJ")  # Replace with your actual API key
+genai.configure(api_key=GEMINI_API_KEY)
+GEMINI_MODEL = "gemini-1.5-flash"  # Using Gemini 1.5 Flash model
+
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
-GROQ_API_KEY="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"
 
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 if not OPENWEATHERMAP_API_KEY:
@@ -177,13 +176,8 @@ def get_soil_data(lat, lon):
             "pH": 7.0
         }
 
-# Groq API integration
-def get_groq_prediction(input_data):
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    
+# Gemini API integration
+def get_gemini_prediction(input_data):
     prompt = f"""
     Based on the following soil and weather parameters, recommend the best crop to grow:
     
@@ -202,21 +196,10 @@ def get_groq_prediction(input_data):
     4. Any warnings or special considerations
     """
     
-    payload = {
-        "model": "llama3-70b-8192",
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    
     try:
-        response = requests.post("https://api.groq.com/openai/v1/chat/completions", 
-                               json=payload, 
-                               headers=headers)
-        
-        if response.status_code == 200:
-            result = response.json()
-            return result["choices"][0]["message"]["content"]
-        else:
-            return f"Error: Unable to get crop recommendation. Status code: {response.status_code}"
+        model = genai.GenerativeModel(GEMINI_MODEL)
+        response = model.generate_content(prompt)
+        return response.text
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -529,8 +512,8 @@ def process_input():
         }
         session['soil_data'] = soil_data
 
-        # Get AI-based crop recommendation from Groq API
-        crop_recommendation = get_groq_prediction(soil_data)
+        # Get AI-based crop recommendation from Gemini API
+        crop_recommendation = get_gemini_prediction(soil_data)
 
         # Store recommendation in session
         session['crop_recommendation'] = crop_recommendation
@@ -824,7 +807,7 @@ def process_location():
         session['soil_data'] = combined_data
         
         # Get AI recommendation
-        raw_crop_recommendation = get_groq_prediction(combined_data)
+        raw_crop_recommendation = get_gemini_prediction(combined_data)
         
         # Parse the recommendation
         parsed_recommendation = parse_crop_recommendation_location(raw_crop_recommendation)
@@ -1354,8 +1337,8 @@ def process_leaf():
                     flash('The uploaded image does not appear to be a plant leaf', 'danger')
                     return redirect(url_for('leaf_analysis'))
                 
-                # Process with Groq API
-                analysis_result = analyze_leaf_with_groq(file_path)
+                # Process with Gemini API
+                analysis_result = analyze_leaf_with_gemini(file_path)
                 
                 # Validate API response
                 if analysis_result['health_status'] == 'Analysis Failed':
@@ -1433,8 +1416,8 @@ def is_leaf_image(image_path):
         print(f"Error validating leaf image: {str(e)}")
         return False
 
-def analyze_leaf_with_groq(image_path):
-    """Analyze leaf image using Groq API with enhanced validation"""
+def analyze_leaf_with_gemini(image_path):
+    """Analyze leaf image using Gemini API with enhanced validation"""
     try:
         # Validate image first
         img = cv2.imread(image_path)
@@ -1447,6 +1430,10 @@ def analyze_leaf_with_groq(image_path):
         pixels = resized_img.reshape(-1, 3)
         avg_color = np.mean(pixels, axis=0)
         hex_color = '#{:02x}{:02x}{:02x}'.format(*avg_color.astype(int))
+        
+        # Load and prepare image for Gemini
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
         
         # Enhanced prompt with strict instructions
         prompt = f"""
@@ -1461,22 +1448,34 @@ def analyze_leaf_with_groq(image_path):
            - health_status: Diagnosis ("Healthy", "Nitrogen Deficiency", etc.)
            - deficiencies: Detailed explanation
         
-        Response MUST be valid JSON with exactly these keys.
+        Response MUST be valid JSON with exactly these keys: leaf_color, leaf_color_name, health_status, deficiencies
         """
         
-        # Call Groq API with timeout
-        response = groq_client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a precise agricultural analysis assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            response_format={"type": "json_object"},
-            timeout=30  # 30 second timeout
-        )
+        # Call Gemini API with image
+        model = genai.GenerativeModel(GEMINI_MODEL)
+        
+        # Upload the image
+        image_part = {
+            "mime_type": "image/jpeg",
+            "data": image_data
+        }
+        
+        response = model.generate_content([prompt, image_part])
         
         # Parse and validate response
-        result = json.loads(response.choices[0].message.content)
+        response_text = response.text.strip()
+        
+        # Extract JSON from response if it's wrapped in markdown
+        if "```json" in response_text:
+            json_start = response_text.find("```json") + 7
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        elif "```" in response_text:
+            json_start = response_text.find("```") + 3
+            json_end = response_text.find("```", json_start)
+            response_text = response_text[json_start:json_end].strip()
+        
+        result = json.loads(response_text)
         
         if not all(key in result for key in ['leaf_color', 'leaf_color_name', 'health_status', 'deficiencies']):
             raise ValueError("Invalid API response format")
@@ -1500,17 +1499,7 @@ def analyze_leaf_with_groq(image_path):
             'deficiencies': f'Unable to analyze image: {str(e)}'
         }
     
-# def analyze_leaf_with_groq(image_path):
-#     # First try specialized plant API
-#     try:
-#         plant_api_result = call_plant_disease_api(image_path)
-#         if plant_api_result['is_leaf']:
-#             return format_plant_api_result(plant_api_result)
-#     except Exception as e:
-#         print(f"Plant API error: {str(e)}")
-    
-#     # Fallback to Groq analysis
-#     return analyze_with_groq_fallback(image_path)
+# Legacy code - removed old Groq implementation
 
 def get_fertilizer_recommendation(health_status):
     """
