@@ -45,7 +45,7 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True           # Force template reload
 app.jinja_env.cache = None 
 
-app.secret_key = "farmadvisorapp2025"  # Set secret key here
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "fallback_dev_secret_key_only")  # Sentinel: Fix hardcoded secret key
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 app.config['SESSION_TYPE'] = 'filesystem'  # Or 'redis' for production
@@ -79,13 +79,13 @@ cache = Cache(app, config={
 })
 
 # Configure Groq client
-groq_client = Groq(api_key="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")
+load_dotenv()
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") # Sentinel: Fix hardcoded API key
+groq_client = Groq(api_key=GROQ_API_KEY)
 GROQ_MODEL = "llama3-70b-8192"  # or another appropriate model
 
-load_dotenv()
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
-GROQ_API_KEY="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"
 
 OPENWEATHERMAP_API_KEY = os.getenv("OPENWEATHERMAP_API_KEY")
 if not OPENWEATHERMAP_API_KEY:
